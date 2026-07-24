@@ -67,7 +67,7 @@ const RAW_GSHEET_LOANS = [
     },
     {
         id: 'loan_car_loan',
-        name: 'Hyundai Venue Car Loan (USE0416BTT000019547623)',
+        name: 'Poonawalla Car Loan (Hyundai Venue UP21CS7039)',
         category: 'Car Loan',
         startDate: '15/11/25',
         loanAmount: 1518799,
@@ -166,21 +166,6 @@ const RAW_GSHEET_LOANS = [
         interestRate: 9.5,
         remarks: 'EMI not increased yet',
         status: 'Pending'
-    },
-    {
-        id: 'loan_poonawala_2',
-        name: 'Poonawala (Nov)',
-        category: 'Business Loan',
-        startDate: 'Nov 30',
-        loanAmount: 1518799,
-        balanceAmt: 1518799,
-        debitAccount: '4919',
-        emi: 36182,
-        dueDate: '10/12/25',
-        tenure: '60 months',
-        interestRate: 13.0,
-        remarks: '',
-        status: 'Active'
     }
 ];
 
@@ -268,8 +253,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v12');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v12');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v13');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v13');
 
     if (storedLoans) {
         try {
@@ -319,11 +304,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v12', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v13', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v12', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v13', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
