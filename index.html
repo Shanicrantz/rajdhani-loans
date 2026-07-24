@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rajdhani Smart Loan & Debt Portfolio Tracker</title>
+    <meta name="description" content="Comprehensive loan management, bank account debit tracking, EMI schedules, and payoff optimization dashboard.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>Rajdhani<span>LOANS</span></h2>
+                    <p id="viewModeBadgeTag" class="mode-badge internal">Internal View</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="loans">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Bank Loans</span>
+                </button>
+                <button class="nav-item private-element" data-tab="commitments" id="navItemCommitments">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <span>Other Commitments</span>
+                </button>
+                <button class="nav-item" data-tab="calculator">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Payoff Calculator</span>
+                </button>
+                <button class="nav-item" data-tab="import-export">
+                    <i class="fa-solid fa-file-csv"></i>
+                    <span>Import / Export</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="currency-selector">
+                    <label><i class="fa-solid fa-globe"></i> Currency</label>
+                    <select id="currencySelect">
+                        <option value="₹">₹ (INR)</option>
+                        <option value="$">$ (USD)</option>
+                        <option value="€">€ (EUR)</option>
+                        <option value="£">£ (GBP)</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="pageTitle">Loan Portfolio Dashboard</h1>
+                    <p id="pageSubtitle">Track active bank loans, debit account EMI auto-deductions, and schedules.</p>
+                </div>
+                <div class="header-actions">
+                    <!-- View Mode Toggle Button -->
+                    <button class="btn btn-secondary" id="btnToggleViewMode">
+                        <i class="fa-solid fa-eye-slash" id="iconViewMode"></i> <span id="textToggleViewMode">Switch to Shareable View</span>
+                    </button>
+                    <!-- Share Button -->
+                    <button class="btn btn-outline" id="btnCopyShareLink">
+                        <i class="fa-solid fa-share-nodes"></i> Copy Share Link
+                    </button>
+                    <button class="btn btn-primary" id="btnOpenAddLoan">
+                        <i class="fa-solid fa-plus"></i> Add New Loan
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-content active">
+                <!-- Summary Cards Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-card">
+                        <div class="card-icon icon-blue">
+                            <i class="fa-solid fa-landmark"></i>
+                        </div>
+                        <div class="card-details">
+                            <span class="card-label">Total Debt Balance</span>
+                            <h2 class="card-value" id="valTotalPrincipal">₹0</h2>
+                            <div class="card-subtext" id="subtextOriginalDebt">Running Debt: ₹0</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card">
+                        <div class="card-icon icon-purple">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="card-details">
+                            <span class="card-label">Total Monthly Bank EMI</span>
+                            <h2 class="card-value" id="valTotalBankEMI">₹0</h2>
+                            <div class="card-subtext" id="subtextActiveLoans">Across active bank loans</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card private-element" id="cardOtherCommitment">
+                        <div class="card-icon icon-amber">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="card-details">
+                            <span class="card-label">Other Commitments</span>
+                            <h2 class="card-value" id="valTotalOtherCommitment">₹211,500</h2>
+                            <div class="card-subtext">Private payouts (Internal Only)</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass-card private-element" id="cardTotalCombined">
+                        <div class="card-icon icon-emerald">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div class="card-details">
+                            <span class="card-label">Grand Total Outflow</span>
+                            <h2 class="card-value" id="valTotalMonthlyCombined">₹0</h2>
+                            <div class="card-subtext">Bank EMIs + Other Commitments</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Debit Account EMI Breakup Cards -->
+                <div class="section-card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-credit-card"></i> EMI Auto-Deductions by Debit Account</h3>
+                    </div>
+                    <div class="account-breakup-grid" id="debitAccountGrid">
+                        <!-- Dynamic Account Cards -->
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Loan Balance Breakdown</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chartDebtBreakdown"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3><i class="fa-solid fa-chart-bar"></i> Monthly EMI by Debit Account</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chartAccountEMI"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Overview Table -->
+                <div class="section-card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-list"></i> Active Bank Loans Master Sheet</h3>
+                        <button class="btn btn-sm btn-outline" id="btnViewAllLoans">View Amortization Schedules</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="tableSummary">
+                            <thead>
+                                <tr>
+                                    <th>Loan Name</th>
+                                    <th>Loan Amount</th>
+                                    <th>Already Running</th>
+                                    <th>Balance Amt</th>
+                                    <th>Debit A/C</th>
+                                    <th>Monthly EMI</th>
+                                    <th>Due Date</th>
+                                    <th>Tenure</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Loans & Amortization Tab -->
+            <section id="tab-loans" class="tab-content">
+                <div class="loans-layout">
+                    <!-- Left: Loan Cards/List -->
+                    <div class="loan-sidebar-list glass-card">
+                        <div class="list-header">
+                            <h3>Bank Loans</h3>
+                            <button class="btn btn-sm btn-primary" id="btnSidebarAddLoan"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div class="loan-items-container" id="loanItemsContainer">
+                            <!-- Dynamic loan cards -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Selected Loan Amortization Schedule & Details -->
+                    <div class="loan-detail-pane glass-card" id="loanDetailPane">
+                        <div id="noLoanSelected" class="empty-state">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            <h3>Select a loan from the left</h3>
+                            <p>Or click "Add New Loan" to view or edit details.</p>
+                        </div>
+
+                        <div id="loanDetailContent" style="display: none;">
+                            <div class="detail-header">
+                                <div>
+                                    <span class="badge badge-primary" id="detCategory">Home Loan</span>
+                                    <h2 id="detLoanName">HDFC Home Loan</h2>
+                                    <p class="text-muted" id="detLender">Debit Account: <strong id="detDebitAccount">3981</strong></p>
+                                </div>
+                                <div class="detail-actions">
+                                    <button class="btn btn-outline" id="btnEditCurrentLoan"><i class="fa-solid fa-pen"></i> Edit</button>
+                                    <button class="btn btn-danger-outline" id="btnDeleteCurrentLoan"><i class="fa-solid fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+
+                            <!-- Highlights Row -->
+                            <div class="loan-highlights">
+                                <div class="highlight-box">
+                                    <span class="hl-label">Sanctioned Loan</span>
+                                    <span class="hl-val" id="detOriginalVal">₹0</span>
+                                </div>
+                                <div class="highlight-box">
+                                    <span class="hl-label">Already Running</span>
+                                    <span class="hl-val" id="detRunningVal">₹0</span>
+                                </div>
+                                <div class="highlight-box">
+                                    <span class="hl-label">Balance Principal</span>
+                                    <span class="hl-val" id="detOutstandingVal">₹0</span>
+                                </div>
+                                <div class="highlight-box">
+                                    <span class="hl-label">Monthly EMI</span>
+                                    <span class="hl-val highlight-accent" id="detEmiVal">₹0</span>
+                                </div>
+                                <div class="highlight-box">
+                                    <span class="hl-label">Due Date & Tenure</span>
+                                    <span class="hl-val" id="detTenureVal">0 Mos</span>
+                                </div>
+                            </div>
+
+                            <!-- Tabs for Schedule / Extra Repayments -->
+                            <div class="sub-tab-bar">
+                                <button class="sub-tab active" data-subtab="amortization">Amortization Schedule</button>
+                                <button class="sub-tab" data-subtab="prepayments">Prepayments / Extra Principal</button>
+                            </div>
+
+                            <!-- Amortization Schedule Table -->
+                            <div id="subtab-amortization" class="subtab-content active">
+                                <div class="table-filter-bar">
+                                    <div class="search-box">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="scheduleSearch" placeholder="Search payment # or year...">
+                                    </div>
+                                    <button class="btn btn-sm btn-outline" id="btnExportAmortizationCSV">
+                                        <i class="fa-solid fa-download"></i> Export CSV
+                                    </button>
+                                </div>
+                                <div class="table-responsive schedule-table-wrapper">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Payment Date</th>
+                                                <th>Opening Balance</th>
+                                                <th>EMI Payment</th>
+                                                <th>Principal Paid</th>
+                                                <th>Interest Paid</th>
+                                                <th>Extra Paid</th>
+                                                <th>Closing Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="amortizationTableBody">
+                                            <!-- Dynamic Amortization rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Prepayments Tab -->
+                            <div id="subtab-prepayments" class="subtab-content">
+                                <div class="prepayment-controls">
+                                    <h4>Add Extra Repayment / Prepayment</h4>
+                                    <form id="formAddPrepayment" class="inline-form">
+                                        <div class="form-group">
+                                            <label>Month # (Payment Number)</label>
+                                            <input type="number" id="prepMonthNo" min="1" required placeholder="e.g. 12">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Extra Amount</label>
+                                            <input type="number" id="prepAmount" min="1" step="any" required placeholder="e.g. 50000">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Recurrence</label>
+                                            <select id="prepRecurrence">
+                                                <option value="once">One-Time Only</option>
+                                                <option value="monthly">Every Month</option>
+                                                <option value="yearly">Every Year</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Prepayment</button>
+                                    </form>
+
+                                    <h4 class="mt-4">Active Prepayment Rules</h4>
+                                    <ul class="prepayment-list" id="prepaymentList">
+                                        <!-- Dynamic items -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Other Commitments Tab (Internal Only) -->
+            <section id="tab-commitments" class="tab-content private-element">
+                <div class="section-card glass-card">
+                    <div class="card-header">
+                        <div>
+                            <h3><i class="fa-solid fa-hand-holding-dollar"></i> Other Monthly Commitments & Private Payouts</h3>
+                            <p class="text-muted">Track monthly non-bank commitments (D, Saim, Rt2, Ele, NJ, NZ, etc.) - <em>Visible in Internal View only</em></p>
+                        </div>
+                        <button class="btn btn-primary" id="btnOpenAddCommitment"><i class="fa-solid fa-plus"></i> Add Commitment</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference / Name</th>
+                                    <th>Monthly Amount</th>
+                                    <th>Status / Remarks</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="commitmentsTableBody">
+                                <!-- Dynamic Commitment Rows -->
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: rgba(255,255,255,0.05); font-weight: 800;">
+                                    <td>Total Monthly Other Commitments</td>
+                                    <td id="footOtherCommitmentTotal">₹211,500.00</td>
+                                    <td colspan="2">Net Running: ₹156,500.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payoff & Prepayment Calculator Tab -->
+            <section id="tab-calculator" class="tab-content">
+                <div class="calculator-grid">
+                    <div class="glass-card form-card">
+                        <h3><i class="fa-solid fa-calculator"></i> Prepayment Savings Simulator</h3>
+                        <p class="text-muted">Calculate how much interest and tenure you save by increasing EMI or making extra lump-sum payments.</p>
+                        
+                        <form id="calcForm" class="mt-3">
+                            <div class="form-group">
+                                <label>Loan Principal Balance</label>
+                                <input type="number" id="calcPrincipal" value="2500000" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Annual Interest Rate (%)</label>
+                                <input type="number" id="calcRate" value="9.5" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Remaining Tenure (Years)</label>
+                                <input type="number" id="calcTenureYears" value="15" step="0.5" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Regular Monthly EMI</label>
+                                <input type="number" id="calcRegularEMI" value="26108" readonly class="input-readonly">
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="form-group">
+                                <label>Extra Monthly EMI Top-Up</label>
+                                <input type="number" id="calcExtraEMI" value="5000" step="any">
+                            </div>
+                            <div class="form-group">
+                                <label>Lump-Sum Annual Prepayment</label>
+                                <input type="number" id="calcAnnualPrepay" value="100000" step="any">
+                            </div>
+
+                            <button type="button" class="btn btn-primary btn-block" id="btnRunCalc">
+                                <i class="fa-solid fa-bolt"></i> Simulate Payoff
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="glass-card result-card">
+                        <h3><i class="fa-solid fa-piggy-bank"></i> Payoff Impact Results</h3>
+                        
+                        <div class="savings-highlights">
+                            <div class="savings-card green">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                <span class="savings-label">Total Interest Saved</span>
+                                <h2 id="calcInterestSaved">₹0</h2>
+                            </div>
+
+                            <div class="savings-card blue">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span class="savings-label">Tenure Reduced By</span>
+                                <h2 id="calcTimeSaved">0 Years</h2>
+                            </div>
+                        </div>
+
+                        <div class="comparison-details mt-4">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Regular Schedule</th>
+                                        <th>With Prepayments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Total Payment</td>
+                                        <td id="calcRegTotal">₹0</td>
+                                        <td id="calcNewTotal" class="text-success">₹0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Interest</td>
+                                        <td id="calcRegInterest">₹0</td>
+                                        <td id="calcNewInterest" class="text-success">₹0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Payoff Time</td>
+                                        <td id="calcRegTime">0 Months</td>
+                                        <td id="calcNewTime" class="text-success">0 Months</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="chart-wrapper mt-4">
+                            <canvas id="chartCalcComparison"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Import / Export Tab -->
+            <section id="tab-import-export" class="tab-content">
+                <div class="import-export-grid">
+                    <div class="glass-card">
+                        <h3><i class="fa-solid fa-paste"></i> Quick Paste GSheet Data</h3>
+                        <p class="text-muted">Paste columns copied directly from your Google Sheet or Excel file.</p>
+                        
+                        <div class="form-group mt-3">
+                            <textarea id="pasteDataArea" rows="8" placeholder="Paste GSheet rows here..."></textarea>
+                        </div>
+                        <button class="btn btn-primary" id="btnProcessPaste">
+                            <i class="fa-solid fa-file-import"></i> Parse & Import Loans
+                        </button>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3><i class="fa-solid fa-file-export"></i> Backup & Export Options</h3>
+                        <p class="text-muted">Save your loans to JSON backup or download full CSV summary for Google Sheets / Excel.</p>
+                        
+                        <div class="export-actions-list mt-4">
+                            <button class="btn btn-outline btn-block" id="btnExportJSON">
+                                <i class="fa-solid fa-download"></i> Download Complete Backup (.json)
+                            </button>
+                            <button class="btn btn-outline btn-block" id="btnExportCSV">
+                                <i class="fa-solid fa-file-csv"></i> Download Loans Summary (.csv)
+                            </button>
+                            <label class="btn btn-secondary btn-block label-file-upload">
+                                <i class="fa-solid fa-upload"></i> Restore from Backup (.json)
+                                <input type="file" id="inputFileBackup" accept=".json" style="display: none;">
+                            </label>
+                            <button class="btn btn-danger-outline btn-block" id="btnResetDefaultData">
+                                <i class="fa-solid fa-rotate"></i> Reload Raw GSheet Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: Add / Edit Loan -->
+    <div class="modal-backdrop" id="modalLoan">
+        <div class="modal-box glass-card">
+            <div class="modal-header">
+                <h3 id="modalLoanTitle">Add New Loan</h3>
+                <button class="btn-icon" id="btnCloseLoanModal">&times;</button>
+            </div>
+            <form id="formLoan">
+                <input type="hidden" id="loanId">
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Loan Name / Reference *</label>
+                        <input type="text" id="loanName" placeholder="e.g. Bajaj" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Category *</label>
+                        <select id="loanCategory" required>
+                            <option value="Personal Loan">Personal Loan</option>
+                            <option value="Home Loan / LAP">Home Loan / LAP</option>
+                            <option value="Business Loan">Business Loan</option>
+                            <option value="Car Loan">Car Loan</option>
+                            <option value="Overdraft / Limit">Overdraft / Limit</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Sanctioned Loan Amount *</label>
+                        <input type="number" id="loanOriginal" step="any" placeholder="e.g. 748000" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Already Running Balance</label>
+                        <input type="number" id="loanRunning" step="any" placeholder="e.g. 748000">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Balance Amount *</label>
+                        <input type="number" id="loanOutstanding" step="any" placeholder="e.g. 748000" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Debit Bank Account *</label>
+                        <input type="text" id="loanDebitAccount" placeholder="e.g. 3981, 4919, 7491" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Monthly EMI Amount *</label>
+                        <input type="number" id="loanEMI" step="any" placeholder="e.g. 12000" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Interest Rate (% p.a.)</label>
+                        <input type="number" id="loanRate" step="0.01" placeholder="e.g. 11.5">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Due Date *</label>
+                        <input type="text" id="loanDueDate" placeholder="e.g. 2/5/25" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Tenure (Months / Description)</label>
+                        <input type="text" id="loanTenure" placeholder="e.g. 36 months">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Remarks / Notes</label>
+                    <input type="text" id="loanRemarks" placeholder="e.g. advance emi paid on 1/1/26">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btnCancelLoanModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Loan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Other Commitment -->
+    <div class="modal-backdrop" id="modalCommitment">
+        <div class="modal-box glass-card">
+            <div class="modal-header">
+                <h3>Add Other Commitment</h3>
+                <button class="btn-icon" id="btnCloseCommitmentModal">&times;</button>
+            </div>
+            <form id="formCommitment">
+                <div class="form-group">
+                    <label>Reference Name *</label>
+                    <input type="text" id="commName" placeholder="e.g. D, Saim, Rt2" required>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Amount *</label>
+                    <input type="number" id="commAmount" step="any" placeholder="e.g. 25000" required>
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" id="commRemarks" placeholder="e.g. Recurring payout">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btnCancelCommitmentModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

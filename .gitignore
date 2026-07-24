@@ -1,0 +1,7 @@
+# Dependencies & OS junk
+.DS_Store
+*.log
+node_modules/
+dist/
+.idea/
+.vscode/
