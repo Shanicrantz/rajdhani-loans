@@ -218,7 +218,7 @@ let loans = [];
 let commitments = [];
 let selectedLoanId = null;
 let currencySymbol = '₹';
-let isShareableMode = true; // Default to TRUE (PUBLIC SHAREABLE VIEW)
+let isShareableMode = true;
 let chartDebtBreakdown = null;
 let chartAccountEMI = null;
 let chartCalcComparison = null;
@@ -252,20 +252,24 @@ function updateViewModeUI() {
 
     if (isShareableMode) {
         document.body.classList.add('shareable-mode');
-        badge.innerText = 'Public Shareable View';
-        badge.className = 'mode-badge shareable';
-        toggleBtnText.innerText = 'Owner Unlock (Internal)';
-        toggleIcon.className = 'fa-solid fa-lock';
+        if (badge) {
+            badge.innerText = 'Public Shareable View';
+            badge.className = 'mode-badge shareable';
+        }
+        if (toggleBtnText) toggleBtnText.innerText = 'Owner Unlock (Internal)';
+        if (toggleIcon) toggleIcon.className = 'fa-solid fa-lock';
 
         privateEls.forEach(el => {
             el.style.setProperty('display', 'none', 'important');
         });
     } else {
         document.body.classList.remove('shareable-mode');
-        badge.innerText = 'Internal Owner View';
-        badge.className = 'mode-badge internal';
-        toggleBtnText.innerText = 'Lock Shareable Mode';
-        toggleIcon.className = 'fa-solid fa-lock-open';
+        if (badge) {
+            badge.innerText = 'Internal Owner View';
+            badge.className = 'mode-badge internal';
+        }
+        if (toggleBtnText) toggleBtnText.innerText = 'Lock Shareable Mode';
+        if (toggleIcon) toggleIcon.className = 'fa-solid fa-lock-open';
 
         privateEls.forEach(el => {
             if (el.tagName === 'SECTION') el.style.display = 'block';
@@ -280,17 +284,39 @@ function loadDataFromStorage() {
     const storedComm = localStorage.getItem('rajdhani_commitments_v2');
 
     if (storedLoans) {
-        try { loans = JSON.parse(storedLoans); } catch (e) { loans = [...RAW_GSHEET_LOANS]; }
+        try {
+            const parsed = JSON.parse(storedLoans);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                loans = parsed;
+            } else {
+                loans = [...RAW_GSHEET_LOANS];
+            }
+        } catch (e) {
+            loans = [...RAW_GSHEET_LOANS];
+        }
     } else {
         loans = [...RAW_GSHEET_LOANS];
         saveLoansToStorage();
     }
 
     if (storedComm) {
-        try { commitments = JSON.parse(storedComm); } catch (e) { commitments = [...RAW_GSHEET_COMMITMENTS]; }
+        try {
+            const parsed = JSON.parse(storedComm);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                commitments = parsed;
+            } else {
+                commitments = [...RAW_GSHEET_COMMITMENTS];
+            }
+        } catch (e) {
+            commitments = [...RAW_GSHEET_COMMITMENTS];
+        }
     } else {
         commitments = [...RAW_GSHEET_COMMITMENTS];
         saveCommitmentsToStorage();
+    }
+
+    if (!selectedLoanId && loans.length > 0) {
+        selectedLoanId = loans[0].id;
     }
 }
 
@@ -309,6 +335,7 @@ function formatCurrency(val) {
 
 function generateAmortizationSchedule(loan) {
     const schedule = [];
+    if (!loan) return schedule;
     let balance = Number(loan.balanceAmt || loan.loanAmount);
     if (balance <= 0 || loan.status === 'Closed' || loan.emi <= 0) return schedule;
 
@@ -397,18 +424,26 @@ function renderSummaryCards() {
     let totalOtherComm = commitments.reduce((sum, c) => sum + Number(c.amount || 0), 0);
     let totalMonthlyCombined = totalBankEMI + totalOtherComm;
 
-    document.getElementById('valTotalPrincipal').innerText = formatCurrency(totalBalance);
-    document.getElementById('subtextOriginalDebt').innerText = `Already Running: ${formatCurrency(totalRunning)}`;
+    const elBal = document.getElementById('valTotalPrincipal');
+    const elSub = document.getElementById('subtextOriginalDebt');
+    const elEmi = document.getElementById('valTotalBankEMI');
+    const elActive = document.getElementById('subtextActiveLoans');
+    const elOther = document.getElementById('valTotalOtherCommitment');
+    const elComb = document.getElementById('valTotalMonthlyCombined');
 
-    document.getElementById('valTotalBankEMI').innerText = formatCurrency(totalBankEMI);
-    document.getElementById('subtextActiveLoans').innerText = `${loans.filter(l=>l.status!=='Closed').length} active bank loan(s)`;
+    if (elBal) elBal.innerText = formatCurrency(totalBalance);
+    if (elSub) elSub.innerText = `Already Running: ${formatCurrency(totalRunning)}`;
 
-    document.getElementById('valTotalOtherCommitment').innerText = formatCurrency(totalOtherComm);
-    document.getElementById('valTotalMonthlyCombined').innerText = formatCurrency(totalMonthlyCombined);
+    if (elEmi) elEmi.innerText = formatCurrency(totalBankEMI);
+    if (elActive) elActive.innerText = `${loans.filter(l=>l.status!=='Closed').length} active bank loan(s)`;
+
+    if (elOther) elOther.innerText = formatCurrency(totalOtherComm);
+    if (elComb) elComb.innerText = formatCurrency(totalMonthlyCombined);
 }
 
 function renderDebitAccountBreakup() {
     const container = document.getElementById('debitAccountGrid');
+    if (!container) return;
     container.innerHTML = '';
 
     const accountMap = {};
@@ -453,6 +488,7 @@ function renderDebitAccountBreakup() {
 
 function renderSummaryTable() {
     const tbody = document.getElementById('summaryTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     loans.forEach(loan => {
@@ -510,7 +546,8 @@ function renderCommitmentsTable() {
         tbody.appendChild(tr);
     });
 
-    document.getElementById('footOtherCommitmentTotal').innerText = formatCurrency(total);
+    const footTotal = document.getElementById('footOtherCommitmentTotal');
+    if (footTotal) footTotal.innerText = formatCurrency(total);
 
     document.querySelectorAll('.btn-del-comm').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -525,6 +562,7 @@ function renderCommitmentsTable() {
 
 function renderLoanSidebarList() {
     const container = document.getElementById('loanItemsContainer');
+    if (!container) return;
     container.innerHTML = '';
 
     loans.forEach(loan => {
@@ -553,26 +591,35 @@ function renderSelectedLoanDetails() {
     const noLoanState = document.getElementById('noLoanSelected');
     const contentState = document.getElementById('loanDetailContent');
 
-    const loan = loans.find(l => l.id === selectedLoanId);
+    const loan = loans.find(l => l.id === selectedLoanId) || loans[0];
 
     if (!loan) {
-        noLoanState.style.display = 'block';
-        contentState.style.display = 'none';
+        if (noLoanState) noLoanState.style.display = 'block';
+        if (contentState) contentState.style.display = 'none';
         return;
     }
 
-    noLoanState.style.display = 'none';
-    contentState.style.display = 'block';
+    if (noLoanState) noLoanState.style.display = 'none';
+    if (contentState) contentState.style.display = 'block';
 
-    document.getElementById('detCategory').innerText = loan.category;
-    document.getElementById('detLoanName').innerText = loan.name;
-    document.getElementById('detDebitAccount').innerText = loan.debitAccount || '3981';
+    const elCat = document.getElementById('detCategory');
+    const elName = document.getElementById('detLoanName');
+    const elAc = document.getElementById('detDebitAccount');
+    const elOrig = document.getElementById('detOriginalVal');
+    const elRun = document.getElementById('detRunningVal');
+    const elOut = document.getElementById('detOutstandingVal');
+    const elEmi = document.getElementById('detEmiVal');
+    const elTen = document.getElementById('detTenureVal');
 
-    document.getElementById('detOriginalVal').innerText = formatCurrency(loan.loanAmount);
-    document.getElementById('detRunningVal').innerText = formatCurrency(loan.alreadyRunning);
-    document.getElementById('detOutstandingVal').innerText = formatCurrency(loan.balanceAmt);
-    document.getElementById('detEmiVal').innerText = formatCurrency(loan.emi);
-    document.getElementById('detTenureVal').innerText = `${loan.dueDate || ''} (${loan.tenure || 'N/A'})`;
+    if (elCat) elCat.innerText = loan.category;
+    if (elName) elName.innerText = loan.name;
+    if (elAc) elAc.innerText = loan.debitAccount || '3981';
+
+    if (elOrig) elOrig.innerText = formatCurrency(loan.loanAmount);
+    if (elRun) elRun.innerText = formatCurrency(loan.alreadyRunning);
+    if (elOut) elOut.innerText = formatCurrency(loan.balanceAmt);
+    if (elEmi) elEmi.innerText = formatCurrency(loan.emi);
+    if (elTen) elTen.innerText = `${loan.dueDate || ''} (${loan.tenure || 'N/A'})`;
 
     const schedule = generateAmortizationSchedule(loan);
     renderAmortizationTable(schedule);
@@ -581,6 +628,7 @@ function renderSelectedLoanDetails() {
 
 function renderAmortizationTable(schedule) {
     const tbody = document.getElementById('amortizationTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     if (schedule.length === 0) {
@@ -608,9 +656,10 @@ function renderAmortizationTable(schedule) {
 
 function renderPrepaymentList(loan) {
     const ul = document.getElementById('prepaymentList');
+    if (!ul) return;
     ul.innerHTML = '';
 
-    if (!loan.prepayments || loan.prepayments.length === 0) {
+    if (!loan || !loan.prepayments || loan.prepayments.length === 0) {
         ul.innerHTML = `<li class="text-muted" style="padding: 8px 0;">No prepayments added yet.</li>`;
         return;
     }
@@ -645,60 +694,66 @@ function renderDashboardCharts() {
     const activeLoans = loans.filter(l => l.status !== 'Closed' && l.balanceAmt > 0);
     if (activeLoans.length === 0) return;
 
-    const ctx1 = document.getElementById('chartDebtBreakdown').getContext('2d');
-    const labels = activeLoans.map(l => l.name);
-    const balances = activeLoans.map(l => l.balanceAmt);
-    const colors = ['#6366f1', '#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e', '#14b8a6', '#ec4899', '#8b5cf6'];
+    const el1 = document.getElementById('chartDebtBreakdown');
+    if (el1) {
+        const ctx1 = el1.getContext('2d');
+        const labels = activeLoans.map(l => l.name);
+        const balances = activeLoans.map(l => l.balanceAmt);
+        const colors = ['#6366f1', '#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e', '#14b8a6', '#ec4899', '#8b5cf6'];
 
-    if (chartDebtBreakdown) chartDebtBreakdown.destroy();
-    chartDebtBreakdown = new Chart(ctx1, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: balances,
-                backgroundColor: colors.slice(0, activeLoans.length),
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } } }
-            }
-        }
-    });
-
-    const ctx2 = document.getElementById('chartAccountEMI').getContext('2d');
-    const acMap = {};
-    activeLoans.forEach(l => {
-        const ac = l.debitAccount || 'Other';
-        acMap[ac] = (acMap[ac] || 0) + Number(l.emi || 0);
-    });
-
-    if (chartAccountEMI) chartAccountEMI.destroy();
-    chartAccountEMI = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(acMap).map(a => `Debit A/C ${a}`),
-            datasets: [{
-                label: 'Monthly EMI Auto-Deduction',
-                data: Object.values(acMap),
-                backgroundColor: '#a855f7',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        if (chartDebtBreakdown) chartDebtBreakdown.destroy();
+        chartDebtBreakdown = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: balances,
+                    backgroundColor: colors.slice(0, activeLoans.length),
+                    borderWidth: 0
+                }]
             },
-            plugins: { legend: { labels: { color: '#94a3b8' } } }
-        }
-    });
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                }
+            }
+        });
+    }
+
+    const el2 = document.getElementById('chartAccountEMI');
+    if (el2) {
+        const ctx2 = el2.getContext('2d');
+        const acMap = {};
+        activeLoans.forEach(l => {
+            const ac = l.debitAccount || 'Other';
+            acMap[ac] = (acMap[ac] || 0) + Number(l.emi || 0);
+        });
+
+        if (chartAccountEMI) chartAccountEMI.destroy();
+        chartAccountEMI = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(acMap).map(a => `Debit A/C ${a}`),
+                datasets: [{
+                    label: 'Monthly EMI Auto-Deduction',
+                    data: Object.values(acMap),
+                    backgroundColor: '#a855f7',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                plugins: { legend: { labels: { color: '#94a3b8' } } }
+            }
+        });
+    }
 }
 
 function initCalculatorDefault() {
@@ -706,7 +761,9 @@ function initCalculatorDefault() {
 }
 
 function runPayoffSimulation() {
-    const P = parseFloat(document.getElementById('calcPrincipal').value) || 0;
+    const elP = document.getElementById('calcPrincipal');
+    if (!elP) return;
+    const P = parseFloat(elP.value) || 0;
     const r = parseFloat(document.getElementById('calcRate').value) || 0;
     const tenureYears = parseFloat(document.getElementById('calcTenureYears').value) || 0;
     const extraEMI = parseFloat(document.getElementById('calcExtraEMI').value) || 0;
@@ -765,28 +822,31 @@ function runPayoffSimulation() {
     document.getElementById('calcRegTime').innerText = `${regMonths} Months (${(regMonths/12).toFixed(1)} Yrs)`;
     document.getElementById('calcNewTime').innerText = `${prepMonths} Months (${(prepMonths/12).toFixed(1)} Yrs)`;
 
-    const ctx = document.getElementById('chartCalcComparison').getContext('2d');
-    if (chartCalcComparison) chartCalcComparison.destroy();
+    const elChart = document.getElementById('chartCalcComparison');
+    if (elChart) {
+        const ctx = elChart.getContext('2d');
+        if (chartCalcComparison) chartCalcComparison.destroy();
 
-    chartCalcComparison = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Interest Cost Comparison'],
-            datasets: [
-                { label: 'Regular Interest', data: [regTotalInterest], backgroundColor: '#f59e0b', borderRadius: 6 },
-                { label: 'With Prepayment Savings', data: [prepTotalInterest], backgroundColor: '#10b981', borderRadius: 6 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        chartCalcComparison = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Interest Cost Comparison'],
+                datasets: [
+                    { label: 'Regular Interest', data: [regTotalInterest], backgroundColor: '#f59e0b', borderRadius: 6 },
+                    { label: 'With Prepayment Savings', data: [prepTotalInterest], backgroundColor: '#10b981', borderRadius: 6 }
+                ]
             },
-            plugins: { legend: { labels: { color: '#94a3b8' } } }
-        }
-    });
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                plugins: { legend: { labels: { color: '#94a3b8' } } }
+            }
+        });
+    }
 }
 
 function initEventListeners() {
@@ -794,104 +854,128 @@ function initEventListeners() {
         btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
     });
 
-    // View Mode Toggle (PIN Protected)
-    document.getElementById('btnToggleViewMode').addEventListener('click', () => {
-        if (isShareableMode) {
-            // Prompt Passcode Modal
-            document.getElementById('inputPasscode').value = '';
-            document.getElementById('modalPasscode').classList.add('active');
-        } else {
-            // Lock back to Shareable Mode
-            isShareableMode = true;
-            if (document.querySelector('.tab-content.active').id === 'tab-commitments') {
-                switchTab('dashboard');
+    const btnToggle = document.getElementById('btnToggleViewMode');
+    if (btnToggle) {
+        btnToggle.addEventListener('click', () => {
+            if (isShareableMode) {
+                const modal = document.getElementById('modalPasscode');
+                document.getElementById('inputPasscode').value = '';
+                if (modal) modal.classList.add('active');
+            } else {
+                isShareableMode = true;
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab && activeTab.id === 'tab-commitments') {
+                    switchTab('dashboard');
+                }
+                renderAll();
+                showToast('Locked to Shareable View');
             }
-            renderAll();
-            showToast('Locked to Shareable View (Other Commitments 100% Hidden)');
-        }
-    });
-
-    // Passcode Modal Actions
-    document.getElementById('btnClosePasscodeModal').addEventListener('click', () => {
-        document.getElementById('modalPasscode').classList.remove('active');
-    });
-    document.getElementById('btnCancelPasscodeModal').addEventListener('click', () => {
-        document.getElementById('modalPasscode').classList.remove('active');
-    });
-
-    document.getElementById('btnSubmitPasscode').addEventListener('click', verifyPasscodeAndUnlock);
-    document.getElementById('inputPasscode').addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') verifyPasscodeAndUnlock();
-    });
-
-    // Copy Clean Shareable Link (without secret keys)
-    document.getElementById('btnCopyShareLink').addEventListener('click', () => {
-        const cleanUrl = window.location.origin + window.location.pathname;
-        navigator.clipboard.writeText(cleanUrl).then(() => {
-            showToast('Public Shareable Link copied to clipboard!');
-        }).catch(() => {
-            prompt('Copy Public Shareable Link:', cleanUrl);
         });
-    });
+    }
 
-    document.getElementById('btnViewAllLoans').addEventListener('click', () => switchTab('loans'));
-    document.getElementById('btnQuickImport').addEventListener('click', () => switchTab('import-export'));
+    const btnClosePass = document.getElementById('btnClosePasscodeModal');
+    const btnCancelPass = document.getElementById('btnCancelPasscodeModal');
+    const btnSubPass = document.getElementById('btnSubmitPasscode');
+    const inPass = document.getElementById('inputPasscode');
 
-    document.getElementById('currencySelect').addEventListener('change', (e) => {
-        currencySymbol = e.target.value;
-        renderAll();
-    });
+    if (btnClosePass) btnClosePass.addEventListener('click', () => document.getElementById('modalPasscode').classList.remove('active'));
+    if (btnCancelPass) btnCancelPass.addEventListener('click', () => document.getElementById('modalPasscode').classList.remove('active'));
+    if (btnSubPass) btnSubPass.addEventListener('click', verifyPasscodeAndUnlock);
+    if (inPass) {
+        inPass.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') verifyPasscodeAndUnlock();
+        });
+    }
+
+    const btnShare = document.getElementById('btnCopyShareLink');
+    if (btnShare) {
+        btnShare.addEventListener('click', () => {
+            const cleanUrl = window.location.origin + window.location.pathname;
+            navigator.clipboard.writeText(cleanUrl).then(() => {
+                showToast('Public Shareable Link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy Public Shareable Link:', cleanUrl);
+            });
+        });
+    }
+
+    const btnViewLoans = document.getElementById('btnViewAllLoans');
+    const btnQuickImp = document.getElementById('btnQuickImport');
+    const curSelect = document.getElementById('currencySelect');
+
+    if (btnViewLoans) btnViewLoans.addEventListener('click', () => switchTab('loans'));
+    if (btnQuickImp) btnQuickImp.addEventListener('click', () => switchTab('import-export'));
+    if (curSelect) {
+        curSelect.addEventListener('change', (e) => {
+            currencySymbol = e.target.value;
+            renderAll();
+        });
+    }
 
     // Modals
-    document.getElementById('btnOpenAddLoan').addEventListener('click', () => openLoanModal());
-    document.getElementById('btnSidebarAddLoan').addEventListener('click', () => openLoanModal());
-    document.getElementById('btnCloseLoanModal').addEventListener('click', closeLoanModal);
-    document.getElementById('btnCancelLoanModal').addEventListener('click', closeLoanModal);
+    const btnAddL1 = document.getElementById('btnOpenAddLoan');
+    const btnAddL2 = document.getElementById('btnSidebarAddLoan');
+    const btnCloseLM = document.getElementById('btnCloseLoanModal');
+    const btnCancelLM = document.getElementById('btnCancelLoanModal');
+    const formL = document.getElementById('formLoan');
 
-    document.getElementById('formLoan').addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveLoanFromModal();
-    });
+    if (btnAddL1) btnAddL1.addEventListener('click', () => openLoanModal());
+    if (btnAddL2) btnAddL2.addEventListener('click', () => openLoanModal());
+    if (btnCloseLM) btnCloseLM.addEventListener('click', closeLoanModal);
+    if (btnCancelLM) btnCancelLM.addEventListener('click', closeLoanModal);
+    if (formL) {
+        formL.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveLoanFromModal();
+        });
+    }
 
-    document.getElementById('btnEditCurrentLoan').addEventListener('click', () => {
-        const loan = loans.find(l => l.id === selectedLoanId);
-        if (loan) openLoanModal(loan);
-    });
+    const btnEditL = document.getElementById('btnEditCurrentLoan');
+    const btnDelL = document.getElementById('btnDeleteCurrentLoan');
 
-    document.getElementById('btnDeleteCurrentLoan').addEventListener('click', () => {
-        if (confirm('Delete this loan entry?')) {
-            loans = loans.filter(l => l.id !== selectedLoanId);
-            selectedLoanId = loans.length > 0 ? loans[0].id : null;
-            saveLoansToStorage();
-            renderAll();
-            showToast('Loan entry deleted');
-        }
-    });
+    if (btnEditL) {
+        btnEditL.addEventListener('click', () => {
+            const loan = loans.find(l => l.id === selectedLoanId);
+            if (loan) openLoanModal(loan);
+        });
+    }
+
+    if (btnDelL) {
+        btnDelL.addEventListener('click', () => {
+            if (confirm('Delete this loan entry?')) {
+                loans = loans.filter(l => l.id !== selectedLoanId);
+                selectedLoanId = loans.length > 0 ? loans[0].id : null;
+                saveLoansToStorage();
+                renderAll();
+                showToast('Loan entry deleted');
+            }
+        });
+    }
 
     // Commitments Modal
-    document.getElementById('btnOpenAddCommitment').addEventListener('click', () => {
-        document.getElementById('modalCommitment').classList.add('active');
-    });
-    document.getElementById('btnCloseCommitmentModal').addEventListener('click', () => {
-        document.getElementById('modalCommitment').classList.remove('active');
-    });
-    document.getElementById('btnCancelCommitmentModal').addEventListener('click', () => {
-        document.getElementById('modalCommitment').classList.remove('active');
-    });
-    document.getElementById('formCommitment').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('commName').value;
-        const amount = parseFloat(document.getElementById('commAmount').value);
-        const remarks = document.getElementById('commRemarks').value;
-        commitments.push({ id: 'comm_' + Date.now(), name, amount, remarks });
-        saveCommitmentsToStorage();
-        document.getElementById('modalCommitment').classList.remove('active');
-        document.getElementById('formCommitment').reset();
-        renderAll();
-        showToast('New commitment added');
-    });
+    const btnOpenComm = document.getElementById('btnOpenAddCommitment');
+    const btnCloseComm = document.getElementById('btnCloseCommitmentModal');
+    const btnCancelComm = document.getElementById('btnCancelCommitmentModal');
+    const formComm = document.getElementById('formCommitment');
 
-    // Subtab navigation
+    if (btnOpenComm) btnOpenComm.addEventListener('click', () => document.getElementById('modalCommitment').classList.add('active'));
+    if (btnCloseComm) btnCloseComm.addEventListener('click', () => document.getElementById('modalCommitment').classList.remove('active'));
+    if (btnCancelComm) btnCancelComm.addEventListener('click', () => document.getElementById('modalCommitment').classList.remove('active'));
+    if (formComm) {
+        formComm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('commName').value;
+            const amount = parseFloat(document.getElementById('commAmount').value);
+            const remarks = document.getElementById('commRemarks').value;
+            commitments.push({ id: 'comm_' + Date.now(), name, amount, remarks });
+            saveCommitmentsToStorage();
+            document.getElementById('modalCommitment').classList.remove('active');
+            formComm.reset();
+            renderAll();
+            showToast('New commitment added');
+        });
+    }
+
     document.querySelectorAll('.sub-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
@@ -901,44 +985,53 @@ function initEventListeners() {
         });
     });
 
-    // Add Prepayment
-    document.getElementById('formAddPrepayment').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const loan = loans.find(l => l.id === selectedLoanId);
-        if (!loan) return;
-        if (!loan.prepayments) loan.prepayments = [];
-        loan.prepayments.push({
-            id: 'prep_' + Date.now(),
-            monthNo: parseInt(document.getElementById('prepMonthNo').value),
-            amount: parseFloat(document.getElementById('prepAmount').value),
-            recurrence: document.getElementById('prepRecurrence').value
-        });
-        saveLoansToStorage();
-        renderAll();
-        showToast('Prepayment added!');
-        document.getElementById('formAddPrepayment').reset();
-    });
-
-    document.getElementById('btnRunCalc').addEventListener('click', runPayoffSimulation);
-    document.getElementById('btnProcessPaste').addEventListener('click', processPastedData);
-
-    document.getElementById('btnExportJSON').addEventListener('click', () => {
-        downloadFile(JSON.stringify({ loans, commitments: isShareableMode ? [] : commitments }, null, 2), 'rajdhani_loans_backup.json', 'application/json');
-    });
-
-    document.getElementById('btnExportCSV').addEventListener('click', exportLoansSummaryCSV);
-
-    document.getElementById('btnResetDefaultData').addEventListener('click', () => {
-        if (confirm('Reload raw Google Sheet dataset?')) {
-            loans = [...RAW_GSHEET_LOANS];
-            commitments = [...RAW_GSHEET_COMMITMENTS];
-            selectedLoanId = loans[0].id;
+    const formPrep = document.getElementById('formAddPrepayment');
+    if (formPrep) {
+        formPrep.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const loan = loans.find(l => l.id === selectedLoanId);
+            if (!loan) return;
+            if (!loan.prepayments) loan.prepayments = [];
+            loan.prepayments.push({
+                id: 'prep_' + Date.now(),
+                monthNo: parseInt(document.getElementById('prepMonthNo').value),
+                amount: parseFloat(document.getElementById('prepAmount').value),
+                recurrence: document.getElementById('prepRecurrence').value
+            });
             saveLoansToStorage();
-            saveCommitmentsToStorage();
             renderAll();
-            showToast('Raw GSheet data reloaded successfully!');
-        }
-    });
+            showToast('Prepayment added!');
+            formPrep.reset();
+        });
+    }
+
+    const btnCalc = document.getElementById('btnRunCalc');
+    const btnPaste = document.getElementById('btnProcessPaste');
+    const btnExpJSON = document.getElementById('btnExportJSON');
+    const btnExpCSV = document.getElementById('btnExportCSV');
+    const btnReset = document.getElementById('btnResetDefaultData');
+
+    if (btnCalc) btnCalc.addEventListener('click', runPayoffSimulation);
+    if (btnPaste) btnPaste.addEventListener('click', processPastedData);
+    if (btnExpJSON) {
+        btnExpJSON.addEventListener('click', () => {
+            downloadFile(JSON.stringify({ loans, commitments: isShareableMode ? [] : commitments }, null, 2), 'rajdhani_loans_backup.json', 'application/json');
+        });
+    }
+    if (btnExpCSV) btnExpCSV.addEventListener('click', exportLoansSummaryCSV);
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (confirm('Reload raw Google Sheet dataset?')) {
+                loans = [...RAW_GSHEET_LOANS];
+                commitments = [...RAW_GSHEET_COMMITMENTS];
+                selectedLoanId = loans[0].id;
+                saveLoansToStorage();
+                saveCommitmentsToStorage();
+                renderAll();
+                showToast('Raw GSheet data reloaded successfully!');
+            }
+        });
+    }
 }
 
 function verifyPasscodeAndUnlock() {
@@ -969,24 +1062,23 @@ function switchTab(tabId) {
     const subEl = document.getElementById('pageSubtitle');
 
     if (tabId === 'dashboard') {
-        titleEl.innerText = 'Loan Portfolio Dashboard';
-        subEl.innerText = 'Track active bank loans, debit account EMI auto-deductions, and schedules.';
+        if (titleEl) titleEl.innerText = 'Loan Portfolio Dashboard';
+        if (subEl) subEl.innerText = 'Track active bank loans, debit account EMI auto-deductions, and schedules.';
     } else if (tabId === 'loans') {
-        titleEl.innerText = 'Bank Loans & Amortization Schedules';
-        subEl.innerText = 'Inspect month-by-month principal reduction and extra repayments.';
+        if (titleEl) titleEl.innerText = 'Bank Loans & Amortization Schedules';
+        if (subEl) subEl.innerText = 'Inspect month-by-month principal reduction and extra repayments.';
     } else if (tabId === 'commitments') {
-        titleEl.innerText = 'Other Monthly Commitments';
-        subEl.innerText = 'Manage recurring non-bank payouts (Internal View Only)';
+        if (titleEl) titleEl.innerText = 'Other Monthly Commitments';
+        if (subEl) subEl.innerText = 'Manage recurring non-bank payouts (Internal View Only)';
     } else if (tabId === 'calculator') {
-        titleEl.innerText = 'Prepayment & Early Payoff Calculator';
-        subEl.innerText = 'Simulate interest savings and early closure date.';
+        if (titleEl) titleEl.innerText = 'Prepayment & Early Payoff Calculator';
+        if (subEl) subEl.innerText = 'Simulate interest savings and early closure date.';
     } else if (tabId === 'import-export') {
-        titleEl.innerText = 'Import & Export Data';
-        subEl.innerText = 'Paste data directly from Google Sheets / Excel or save JSON backups.';
+        if (titleEl) titleEl.innerText = 'Import & Export Data';
+        if (subEl) subEl.innerText = 'Paste data directly from Google Sheets / Excel or save JSON backups.';
     }
 }
 
-// Modal Helpers
 function openLoanModal(loanToEdit = null) {
     const modal = document.getElementById('modalLoan');
     const title = document.getElementById('modalLoanTitle');
@@ -1011,11 +1103,12 @@ function openLoanModal(loanToEdit = null) {
         document.getElementById('loanId').value = '';
     }
 
-    modal.classList.add('active');
+    if (modal) modal.classList.add('active');
 }
 
 function closeLoanModal() {
-    document.getElementById('modalLoan').classList.remove('active');
+    const modal = document.getElementById('modalLoan');
+    if (modal) modal.classList.remove('active');
 }
 
 function saveLoanFromModal() {
@@ -1110,6 +1203,7 @@ function exportLoansSummaryCSV() {
 
 function showToast(msg) {
     const toast = document.getElementById('toast');
+    if (!toast) return;
     toast.innerText = msg;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
