@@ -12,7 +12,6 @@ const RAW_GSHEET_LOANS = [
         name: 'Bajaj Finance (P4E7PHF9186638)',
         category: 'Personal Loan',
         loanAmount: 744836,
-        alreadyRunning: 744836,
         balanceAmt: 672980,
         debitAccount: '3981',
         emi: 19404,
@@ -27,7 +26,6 @@ const RAW_GSHEET_LOANS = [
         name: 'Aditya Birla (ABN_MBIL000000921747)',
         category: 'Business Loan',
         loanAmount: 2000000,
-        alreadyRunning: 2000000,
         balanceAmt: 1410388,
         debitAccount: '4919',
         emi: 74328,
@@ -43,7 +41,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Business Loan',
         startDate: '10/3/25',
         loanAmount: 2925160,
-        alreadyRunning: 0,
         balanceAmt: 3045049,
         debitAccount: '4919',
         emi: 109324,
@@ -59,7 +56,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Personal Loan',
         startDate: '29/3/25',
         loanAmount: 1441897,
-        alreadyRunning: 0,
         balanceAmt: 1500000,
         debitAccount: '7491',
         emi: 54089,
@@ -75,7 +71,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Car Loan',
         startDate: '10/3/22',
         loanAmount: 0,
-        alreadyRunning: 0,
         balanceAmt: 0,
         debitAccount: '7491',
         emi: 0,
@@ -90,7 +85,6 @@ const RAW_GSHEET_LOANS = [
         name: 'HDFC LAP (801428107 - 45% Share)',
         category: 'Home Loan / LAP',
         loanAmount: 8910000,
-        alreadyRunning: 8910000,
         balanceAmt: 8496728,
         debitAccount: '3981',
         emi: 93040,
@@ -106,7 +100,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Personal Loan',
         startDate: '28/12/23',
         loanAmount: 1980000,
-        alreadyRunning: 1899075,
         balanceAmt: 340399,
         debitAccount: '3981',
         emi: 71086,
@@ -122,7 +115,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Personal Loan',
         startDate: '12/3/25',
         loanAmount: 1191292,
-        alreadyRunning: 834392,
         balanceAmt: 1201000,
         debitAccount: '4919',
         emi: 42969,
@@ -137,7 +129,6 @@ const RAW_GSHEET_LOANS = [
         name: 'Limit (OD Credit)',
         category: 'Overdraft / Limit',
         loanAmount: 950000,
-        alreadyRunning: 9500000,
         balanceAmt: 8300000,
         debitAccount: '3162',
         emi: 80000,
@@ -153,7 +144,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Personal Loan',
         startDate: '17/12/22',
         loanAmount: 710000,
-        alreadyRunning: 710000,
         balanceAmt: 710000,
         debitAccount: '7491',
         emi: 12608,
@@ -168,7 +158,6 @@ const RAW_GSHEET_LOANS = [
         name: 'New HDFC LAP Increased',
         category: 'Home Loan / LAP',
         loanAmount: 2900000,
-        alreadyRunning: 0,
         balanceAmt: 2900000,
         debitAccount: '3981',
         emi: 0,
@@ -184,7 +173,6 @@ const RAW_GSHEET_LOANS = [
         category: 'Business Loan',
         startDate: 'Nov 30',
         loanAmount: 1518799,
-        alreadyRunning: 0,
         balanceAmt: 1518799,
         debitAccount: '4919',
         emi: 36182,
@@ -280,8 +268,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v8');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v8');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v9');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v9');
 
     if (storedLoans) {
         try {
@@ -331,11 +319,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v8', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v9', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v8', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v9', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
@@ -420,13 +408,13 @@ function renderAll() {
 // Summary Cards
 function renderSummaryCards() {
     let totalBalance = 0;
-    let totalRunning = 0;
+    let totalSanctioned = 0;
     let totalBankEMI = 0;
 
     loans.forEach(loan => {
         if (loan.status !== 'Closed') {
             totalBalance += Number(loan.balanceAmt || 0);
-            totalRunning += Number(loan.alreadyRunning || 0);
+            totalSanctioned += Number(loan.loanAmount || 0);
             totalBankEMI += Number(loan.emi || 0);
         }
     });
@@ -442,7 +430,7 @@ function renderSummaryCards() {
     const elComb = document.getElementById('valTotalMonthlyCombined');
 
     if (elBal) elBal.innerText = formatCurrency(totalBalance);
-    if (elSub) elSub.innerText = `Already Running: ${formatCurrency(totalRunning)}`;
+    if (elSub) elSub.innerText = `Total Sanctioned: ${formatCurrency(totalSanctioned)}`;
 
     if (elEmi) elEmi.innerText = formatCurrency(totalBankEMI);
     if (elActive) elActive.innerText = `${loans.filter(l=>l.status!=='Closed').length} active bank loan(s)`;
@@ -508,7 +496,6 @@ function renderSummaryTable() {
         tr.innerHTML = `
             <td class="font-bold">${loan.name} ${loan.startDate ? `<br><small class="text-muted">${loan.startDate}</small>` : ''}</td>
             <td>${formatCurrency(loan.loanAmount)}</td>
-            <td>${formatCurrency(loan.alreadyRunning)}</td>
             <td class="font-bold text-success">${formatCurrency(loan.balanceAmt)}</td>
             <td><span class="badge badge-primary">A/C ${loan.debitAccount}</span></td>
             <td class="font-bold">${formatCurrency(loan.emi)}</td>
@@ -616,7 +603,6 @@ function renderSelectedLoanDetails() {
     const elName = document.getElementById('detLoanName');
     const elAc = document.getElementById('detDebitAccount');
     const elOrig = document.getElementById('detOriginalVal');
-    const elRun = document.getElementById('detRunningVal');
     const elOut = document.getElementById('detOutstandingVal');
     const elEmi = document.getElementById('detEmiVal');
     const elTen = document.getElementById('detTenureVal');
@@ -626,7 +612,6 @@ function renderSelectedLoanDetails() {
     if (elAc) elAc.innerText = loan.debitAccount || '3981';
 
     if (elOrig) elOrig.innerText = formatCurrency(loan.loanAmount);
-    if (elRun) elRun.innerText = formatCurrency(loan.alreadyRunning);
     if (elOut) elOut.innerText = formatCurrency(loan.balanceAmt);
     if (elEmi) elEmi.innerText = formatCurrency(loan.emi);
     if (elTen) elTen.innerText = `${loan.dueDate || ''} (${loan.tenure || 'N/A'})`;
@@ -1099,7 +1084,6 @@ function openLoanModal(loanToEdit = null) {
         document.getElementById('loanName').value = loanToEdit.name;
         document.getElementById('loanCategory').value = loanToEdit.category;
         document.getElementById('loanOriginal').value = loanToEdit.loanAmount;
-        document.getElementById('loanRunning').value = loanToEdit.alreadyRunning;
         document.getElementById('loanOutstanding').value = loanToEdit.balanceAmt;
         document.getElementById('loanDebitAccount').value = loanToEdit.debitAccount;
         document.getElementById('loanEMI').value = loanToEdit.emi;
@@ -1126,7 +1110,6 @@ function saveLoanFromModal() {
     const name = document.getElementById('loanName').value;
     const category = document.getElementById('loanCategory').value;
     const loanAmount = parseFloat(document.getElementById('loanOriginal').value) || 0;
-    const alreadyRunning = parseFloat(document.getElementById('loanRunning').value) || 0;
     const balanceAmt = parseFloat(document.getElementById('loanOutstanding').value) || 0;
     const debitAccount = document.getElementById('loanDebitAccount').value;
     const emi = parseFloat(document.getElementById('loanEMI').value) || 0;
@@ -1138,12 +1121,12 @@ function saveLoanFromModal() {
     if (id) {
         const loan = loans.find(l => l.id === id);
         if (loan) {
-            Object.assign(loan, { name, category, loanAmount, alreadyRunning, balanceAmt, debitAccount, emi, interestRate, dueDate, tenure, remarks });
+            Object.assign(loan, { name, category, loanAmount, balanceAmt, debitAccount, emi, interestRate, dueDate, tenure, remarks });
         }
     } else {
         const newLoan = {
             id: 'loan_' + Date.now(),
-            name, category, loanAmount, alreadyRunning, balanceAmt, debitAccount, emi, interestRate, dueDate, tenure, remarks,
+            name, category, loanAmount, balanceAmt, debitAccount, emi, interestRate, dueDate, tenure, remarks,
             status: 'Active', prepayments: []
         };
         loans.push(newLoan);
@@ -1168,18 +1151,17 @@ function processPastedData() {
 
     lines.forEach(line => {
         const p = line.split(/[\t,]/).map(x => x.trim().replace(/[₹,]/g, ''));
-        if (p.length >= 4) {
+        if (p.length >= 3) {
             loans.push({
                 id: 'loan_' + Date.now() + Math.random().toString(36).substr(2, 4),
                 name: p[1] || p[0] || 'Imported Loan',
                 category: 'Personal Loan',
                 loanAmount: parseFloat(p[2]) || 0,
-                alreadyRunning: parseFloat(p[3]) || 0,
-                balanceAmt: parseFloat(p[4]) || parseFloat(p[2]) || 0,
-                debitAccount: p[5] || '3981',
-                emi: parseFloat(p[6]) || 0,
-                dueDate: p[7] || '',
-                tenure: p[8] || '',
+                balanceAmt: parseFloat(p[3]) || parseFloat(p[2]) || 0,
+                debitAccount: p[4] || '3981',
+                emi: parseFloat(p[5]) || 0,
+                dueDate: p[6] || '',
+                tenure: p[7] || '',
                 status: 'Active',
                 prepayments: []
             });
@@ -1204,9 +1186,9 @@ function downloadFile(content, fileName, mimeType) {
 }
 
 function exportLoansSummaryCSV() {
-    let csv = 'Name,Start Date,Sanctioned Amount,Already Running,Balance Amount,Debit Account,Monthly EMI,Due Date,Tenure,Remarks\n';
+    let csv = 'Name,Start Date,Sanctioned Amount,Balance Amount,Debit Account,Monthly EMI,Due Date,Tenure,Remarks\n';
     loans.forEach(l => {
-        csv += `"${l.name}","${l.startDate||''}","${l.loanAmount}","${l.alreadyRunning}","${l.balanceAmt}","${l.debitAccount}","${l.emi}","${l.dueDate||''}","${l.tenure||''}","${l.remarks||''}"\n`;
+        csv += `"${l.name}","${l.startDate||''}","${l.loanAmount}","${l.balanceAmt}","${l.debitAccount}","${l.emi}","${l.dueDate||''}","${l.tenure||''}","${l.remarks||''}"\n`;
     });
     downloadFile(csv, 'rajdhani_loans_master.csv', 'text/csv');
 }
