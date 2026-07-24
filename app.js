@@ -239,8 +239,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v14');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v14');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v15');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v15');
 
     if (storedLoans) {
         try {
@@ -290,11 +290,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v14', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v15', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v14', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v15', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
@@ -595,6 +595,11 @@ function renderLoanSidebarList() {
             selectedLoanId = loan.id;
             renderLoanSidebarList();
             renderSelectedLoanDetails();
+            // Smooth scroll on mobile screens
+            if (window.innerWidth <= 768) {
+                const detailPane = document.getElementById('loanDetailPane');
+                if (detailPane) detailPane.scrollIntoView({ behavior: 'smooth' });
+            }
         });
         container.appendChild(div);
     });
@@ -860,7 +865,30 @@ function runPayoffSimulation() {
     }
 }
 
+function closeMobileSidebar() {
+    const mobSidebar = document.getElementById('appSidebar');
+    const mobOverlay = document.getElementById('sidebarOverlay');
+    if (mobSidebar) mobSidebar.classList.remove('mobile-open');
+    if (mobOverlay) mobOverlay.classList.remove('active');
+}
+
 function initEventListeners() {
+    // Mobile Drawer Controls
+    const btnMobMenu = document.getElementById('btnMobileMenu');
+    const mobOverlay = document.getElementById('sidebarOverlay');
+
+    if (btnMobMenu) {
+        btnMobMenu.addEventListener('click', () => {
+            const mobSidebar = document.getElementById('appSidebar');
+            if (mobSidebar) mobSidebar.classList.toggle('mobile-open');
+            if (mobOverlay) mobOverlay.classList.toggle('active');
+        });
+    }
+
+    if (mobOverlay) {
+        mobOverlay.addEventListener('click', closeMobileSidebar);
+    }
+
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
     });
@@ -1058,6 +1086,7 @@ function verifyPasscodeAndUnlock() {
 }
 
 function switchTab(tabId) {
+    closeMobileSidebar();
     if (isShareableMode && tabId === 'commitments') return;
 
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
