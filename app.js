@@ -268,8 +268,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v10');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v10');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v11');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v11');
 
     if (storedLoans) {
         try {
@@ -319,11 +319,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v10', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v11', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v10', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v11', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
@@ -331,9 +331,54 @@ function formatCurrency(val) {
     return currencySymbol + ' ' + num.toLocaleString('en-IN');
 }
 
+const POONAWALLA_RPS_SCHEDULE = [
+    { monthNo: 1, date: "03-May-2025", openingBalance: 3045049, emiPayment: 143369, principalPaid: 64917, interestPaid: 78452, extraPaid: 0, closingBalance: 2980132 },
+    { monthNo: 2, date: "03-Jun-2025", openingBalance: 2980132, emiPayment: 109324, principalPaid: 65864, interestPaid: 43460, extraPaid: 0, closingBalance: 2914268 },
+    { monthNo: 3, date: "03-Jul-2025", openingBalance: 2914268, emiPayment: 109324, principalPaid: 66824, interestPaid: 42500, extraPaid: 0, closingBalance: 2847444 },
+    { monthNo: 4, date: "03-Aug-2025", openingBalance: 2847444, emiPayment: 109324, principalPaid: 67799, interestPaid: 41525, extraPaid: 0, closingBalance: 2779645 },
+    { monthNo: 5, date: "03-Sep-2025", openingBalance: 2779645, emiPayment: 109324, principalPaid: 68788, interestPaid: 40536, extraPaid: 0, closingBalance: 2710857 },
+    { monthNo: 6, date: "03-Oct-2025", openingBalance: 2710857, emiPayment: 109324, principalPaid: 69791, interestPaid: 39533, extraPaid: 0, closingBalance: 2641066 },
+    { monthNo: 7, date: "03-Nov-2025", openingBalance: 2641066, emiPayment: 109324, principalPaid: 70808, interestPaid: 38516, extraPaid: 0, closingBalance: 2570258 },
+    { monthNo: 8, date: "03-Dec-2025", openingBalance: 2570258, emiPayment: 109324, principalPaid: 71841, interestPaid: 37483, extraPaid: 0, closingBalance: 2498417 },
+    { monthNo: 9, date: "03-Jan-2026", openingBalance: 2498417, emiPayment: 109324, principalPaid: 72889, interestPaid: 36435, extraPaid: 0, closingBalance: 2425528 },
+    { monthNo: 10, date: "03-Feb-2026", openingBalance: 2425528, emiPayment: 109324, principalPaid: 73952, interestPaid: 35372, extraPaid: 0, closingBalance: 2351576 },
+    { monthNo: 11, date: "03-Mar-2026", openingBalance: 2351576, emiPayment: 109324, principalPaid: 75030, interestPaid: 34294, extraPaid: 0, closingBalance: 2276546 },
+    { monthNo: 12, date: "03-Apr-2026", openingBalance: 2276546, emiPayment: 109324, principalPaid: 76124, interestPaid: 33200, extraPaid: 0, closingBalance: 2200422 },
+    { monthNo: 13, date: "03-May-2026", openingBalance: 2200422, emiPayment: 109324, principalPaid: 77235, interestPaid: 32089, extraPaid: 0, closingBalance: 2123187 },
+    { monthNo: 14, date: "03-Jun-2026", openingBalance: 2123187, emiPayment: 109324, principalPaid: 78361, interestPaid: 30963, extraPaid: 0, closingBalance: 2044826 },
+    { monthNo: 15, date: "03-Jul-2026", openingBalance: 2044826, emiPayment: 109324, principalPaid: 79504, interestPaid: 29820, extraPaid: 0, closingBalance: 1965322 },
+    { monthNo: 16, date: "03-Aug-2026", openingBalance: 1965322, emiPayment: 109324, principalPaid: 80663, interestPaid: 28661, extraPaid: 0, closingBalance: 1884659 },
+    { monthNo: 17, date: "03-Sep-2026", openingBalance: 1884659, emiPayment: 109324, principalPaid: 81839, interestPaid: 27485, extraPaid: 0, closingBalance: 1802820 },
+    { monthNo: 18, date: "03-Oct-2026", openingBalance: 1802820, emiPayment: 109324, principalPaid: 83033, interestPaid: 26291, extraPaid: 0, closingBalance: 1719787 },
+    { monthNo: 19, date: "03-Nov-2026", openingBalance: 1719787, emiPayment: 109324, principalPaid: 84244, interestPaid: 25080, extraPaid: 0, closingBalance: 1635543 },
+    { monthNo: 20, date: "03-Dec-2026", openingBalance: 1635543, emiPayment: 109324, principalPaid: 85472, interestPaid: 23852, extraPaid: 0, closingBalance: 1550071 },
+    { monthNo: 21, date: "03-Jan-2027", openingBalance: 1550071, emiPayment: 109324, principalPaid: 86719, interestPaid: 22605, extraPaid: 0, closingBalance: 1463352 },
+    { monthNo: 22, date: "03-Feb-2027", openingBalance: 1463352, emiPayment: 109324, principalPaid: 87983, interestPaid: 21341, extraPaid: 0, closingBalance: 1375369 },
+    { monthNo: 23, date: "03-Mar-2027", openingBalance: 1375369, emiPayment: 109324, principalPaid: 89267, interestPaid: 20057, extraPaid: 0, closingBalance: 1286102 },
+    { monthNo: 24, date: "03-Apr-2027", openingBalance: 1286102, emiPayment: 109324, principalPaid: 90568, interestPaid: 18756, extraPaid: 0, closingBalance: 1195534 },
+    { monthNo: 25, date: "03-May-2027", openingBalance: 1195534, emiPayment: 109324, principalPaid: 91889, interestPaid: 17435, extraPaid: 0, closingBalance: 1103645 },
+    { monthNo: 26, date: "03-Jun-2027", openingBalance: 1103645, emiPayment: 109324, principalPaid: 93229, interestPaid: 16095, extraPaid: 0, closingBalance: 1010416 },
+    { monthNo: 27, date: "03-Jul-2027", openingBalance: 1010416, emiPayment: 109324, principalPaid: 94589, interestPaid: 14735, extraPaid: 0, closingBalance: 915827 },
+    { monthNo: 28, date: "03-Aug-2027", openingBalance: 915827, emiPayment: 109324, principalPaid: 95968, interestPaid: 13356, extraPaid: 0, closingBalance: 819859 },
+    { monthNo: 29, date: "03-Sep-2027", openingBalance: 819859, emiPayment: 109324, principalPaid: 97368, interestPaid: 11956, extraPaid: 0, closingBalance: 722491 },
+    { monthNo: 30, date: "03-Oct-2027", openingBalance: 722491, emiPayment: 109324, principalPaid: 98788, interestPaid: 10536, extraPaid: 0, closingBalance: 623703 },
+    { monthNo: 31, date: "03-Nov-2027", openingBalance: 623703, emiPayment: 109324, principalPaid: 100228, interestPaid: 9096, extraPaid: 0, closingBalance: 523475 },
+    { monthNo: 32, date: "03-Dec-2027", openingBalance: 523475, emiPayment: 109324, principalPaid: 101690, interestPaid: 7634, extraPaid: 0, closingBalance: 421785 },
+    { monthNo: 33, date: "03-Jan-2028", openingBalance: 421785, emiPayment: 109324, principalPaid: 103173, interestPaid: 6151, extraPaid: 0, closingBalance: 318612 },
+    { monthNo: 34, date: "03-Feb-2028", openingBalance: 318612, emiPayment: 109324, principalPaid: 104678, interestPaid: 4646, extraPaid: 0, closingBalance: 213934 },
+    { monthNo: 35, date: "03-Mar-2028", openingBalance: 213934, emiPayment: 109324, principalPaid: 106204, interestPaid: 3120, extraPaid: 0, closingBalance: 107730 },
+    { monthNo: 36, date: "03-Apr-2028", openingBalance: 107730, emiPayment: 109301, principalPaid: 107730, interestPaid: 1571, extraPaid: 0, closingBalance: 0 }
+];
+
 function generateAmortizationSchedule(loan) {
     const schedule = [];
     if (!loan) return schedule;
+
+    // Use exact official bank RPS schedule if available
+    if (loan.id === 'loan_poonawala_1' && (!loan.prepayments || loan.prepayments.length === 0)) {
+        return POONAWALLA_RPS_SCHEDULE;
+    }
+
     let balance = Number(loan.balanceAmt || loan.loanAmount);
     if (balance <= 0 || loan.status === 'Closed' || loan.emi <= 0) return schedule;
 
