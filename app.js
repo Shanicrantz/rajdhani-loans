@@ -9,17 +9,17 @@
 const RAW_GSHEET_LOANS = [
     {
         id: 'loan_bajaj',
-        name: 'Bajaj',
+        name: 'Bajaj Finance (P4E7PHF9186638)',
         category: 'Personal Loan',
-        loanAmount: 748000,
-        alreadyRunning: 748000,
-        balanceAmt: 748000,
+        loanAmount: 744836,
+        alreadyRunning: 744836,
+        balanceAmt: 672980,
         debitAccount: '3981',
-        emi: 12000,
-        dueDate: '2/5/25',
-        tenure: 'N/A',
-        interestRate: 12.0,
-        remarks: '',
+        emi: 19404,
+        dueDate: '2nd',
+        tenure: '51 months remaining',
+        interestRate: 19.2,
+        remarks: 'Bajaj Flexi Statement updated as on 24-Jul-2026 (Utilized ₹6.73L)',
         status: 'Active'
     },
     {
@@ -280,8 +280,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v5');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v5');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v6');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v6');
 
     if (storedLoans) {
         try {
@@ -321,11 +321,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v5', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v6', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v5', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_loans_v6_comm', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
