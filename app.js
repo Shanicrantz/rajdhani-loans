@@ -24,17 +24,17 @@ const RAW_GSHEET_LOANS = [
     },
     {
         id: 'loan_aditya_birla',
-        name: 'Aditya Birla',
-        category: 'Personal Loan',
-        loanAmount: 1922000,
-        alreadyRunning: 0,
-        balanceAmt: 2000000,
+        name: 'Aditya Birla (ABN_MBIL000000921747)',
+        category: 'Business Loan',
+        loanAmount: 2000000,
+        alreadyRunning: 2000000,
+        balanceAmt: 1410388,
         debitAccount: '4919',
         emi: 74328,
-        dueDate: '2/6/25',
-        tenure: '36 months',
-        interestRate: 13.0,
-        remarks: '',
+        dueDate: '2nd',
+        tenure: '23 months remaining',
+        interestRate: 20.0,
+        remarks: 'Aditya Birla Statement updated as on 24-Jul-2026 (13/37 EMIs paid, Part Prepay ₹50k done)',
         status: 'Active'
     },
     {
@@ -280,8 +280,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v7');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v7');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v8');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v8');
 
     if (storedLoans) {
         try {
@@ -331,11 +331,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v7', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v8', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v7', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v8', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
