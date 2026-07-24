@@ -37,17 +37,17 @@ const RAW_GSHEET_LOANS = [
     },
     {
         id: 'loan_poonawala_1',
-        name: 'Poonawala',
+        name: 'Poonawala (BLU0416BL_000019149347)',
         category: 'Business Loan',
         startDate: '10/3/25',
-        loanAmount: 2925160,
-        balanceAmt: 3045049,
+        loanAmount: 3045049,
+        balanceAmt: 1965322,
         debitAccount: '4919',
         emi: 109324,
-        dueDate: '3/5/25',
-        tenure: '36 months',
-        interestRate: 12.5,
-        remarks: 'advance emi paid on 1/1/26',
+        dueDate: '3rd',
+        tenure: '21 months remaining',
+        interestRate: 17.5,
+        remarks: 'Poonawala Statement updated as on 24-Jul-2026 (15/36 EMIs paid)',
         status: 'Active'
     },
     {
@@ -268,8 +268,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v9');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v9');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v10');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v10');
 
     if (storedLoans) {
         try {
@@ -319,11 +319,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v9', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v10', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v9', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v10', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
