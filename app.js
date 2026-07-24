@@ -152,20 +152,6 @@ const RAW_GSHEET_LOANS = [
         interestRate: 12.0,
         remarks: '',
         status: 'Active'
-    },
-    {
-        id: 'loan_new_hdfc_lap',
-        name: 'New HDFC LAP Increased',
-        category: 'Home Loan / LAP',
-        loanAmount: 2900000,
-        balanceAmt: 2900000,
-        debitAccount: '3981',
-        emi: 0,
-        dueDate: 'not increased',
-        tenure: 'Pending',
-        interestRate: 9.5,
-        remarks: 'EMI not increased yet',
-        status: 'Pending'
     }
 ];
 
@@ -253,14 +239,14 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v13');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v13');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v14');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v14');
 
     if (storedLoans) {
         try {
             const parsed = JSON.parse(storedLoans);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                loans = parsed;
+                loans = parsed.filter(l => l.id !== 'loan_new_hdfc_lap' && l.id !== 'loan_poonawala_2');
                 // Auto-sync default loans with latest statement master data
                 RAW_GSHEET_LOANS.forEach(rawLoan => {
                     const idx = loans.findIndex(l => l.id === rawLoan.id);
@@ -304,11 +290,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v13', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v14', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v13', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v14', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
