@@ -105,15 +105,15 @@ const RAW_GSHEET_LOANS = [
         name: 'YES Bank',
         category: 'Personal Loan',
         startDate: '28/12/23',
-        loanAmount: 1899075,
+        loanAmount: 1980000,
         alreadyRunning: 1899075,
-        balanceAmt: 1980000,
+        balanceAmt: 340399,
         debitAccount: '3981',
         emi: 71086,
-        dueDate: '8/4/25',
-        tenure: '22 months',
-        interestRate: 13.0,
-        remarks: '8/3/25 balance on date',
+        dueDate: '8/8/26',
+        tenure: '6 months remaining',
+        interestRate: 17.5,
+        remarks: 'Statement updated till July 2026 (30/36 EMIs paid)',
         status: 'Active'
     },
     {
@@ -280,8 +280,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v3');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v3');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v4');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v4');
 
     if (storedLoans) {
         try {
@@ -321,11 +321,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v3', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v4', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v3', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v4', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
