@@ -52,33 +52,33 @@ const RAW_GSHEET_LOANS = [
     },
     {
         id: 'loan_tata_capital',
-        name: 'Tata Capital',
-        category: 'Personal Loan',
+        name: 'Tata Capital (86023487)',
+        category: 'Business Loan',
         startDate: '29/3/25',
-        loanAmount: 1441897,
-        balanceAmt: 1500000,
+        loanAmount: 1500000,
+        balanceAmt: 1031250,
         debitAccount: '7491',
         emi: 54089,
-        dueDate: '5/5/25',
-        tenure: '48 months',
-        interestRate: 13.5,
-        remarks: '',
+        dueDate: '5th',
+        tenure: '33 months remaining',
+        interestRate: 19.5,
+        remarks: 'Tata Capital Statement updated as on 24-Jul-2026 (15/48 EMIs paid)',
         status: 'Active'
     },
     {
         id: 'loan_car_loan',
-        name: 'Car Loan',
+        name: 'Hyundai Venue Car Loan (USE0416BTT000019547623)',
         category: 'Car Loan',
-        startDate: '10/3/22',
-        loanAmount: 0,
-        balanceAmt: 0,
-        debitAccount: '7491',
-        emi: 0,
-        dueDate: '5/5',
-        tenure: 'Closed',
-        interestRate: 9.0,
-        remarks: 'Closed',
-        status: 'Closed'
+        startDate: '15/11/25',
+        loanAmount: 1518799,
+        balanceAmt: 1377592,
+        debitAccount: '4919',
+        emi: 36182,
+        dueDate: '10th',
+        tenure: '52 months remaining',
+        interestRate: 15.25,
+        remarks: 'Hyundai Venue UP21CS7039 Statement updated as on 24-Jul-2026 (8/60 EMIs paid)',
+        status: 'Active'
     },
     {
         id: 'loan_hdfc_lap',
@@ -268,8 +268,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v11');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v11');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v12');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v12');
 
     if (storedLoans) {
         try {
@@ -319,11 +319,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v11', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v12', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v11', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v12', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
