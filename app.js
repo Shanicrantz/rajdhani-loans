@@ -280,14 +280,24 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v6');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v6');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v7');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v7');
 
     if (storedLoans) {
         try {
             const parsed = JSON.parse(storedLoans);
             if (Array.isArray(parsed) && parsed.length > 0) {
                 loans = parsed;
+                // Auto-sync default loans with latest statement master data
+                RAW_GSHEET_LOANS.forEach(rawLoan => {
+                    const idx = loans.findIndex(l => l.id === rawLoan.id);
+                    if (idx !== -1) {
+                        const userPrep = loans[idx].prepayments || [];
+                        loans[idx] = { ...rawLoan, prepayments: userPrep };
+                    } else {
+                        loans.push({ ...rawLoan });
+                    }
+                });
             } else {
                 loans = [...RAW_GSHEET_LOANS];
             }
@@ -321,11 +331,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v6', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v7', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_loans_v6_comm', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v7', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
