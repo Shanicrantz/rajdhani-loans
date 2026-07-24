@@ -87,17 +87,17 @@ const RAW_GSHEET_LOANS = [
     },
     {
         id: 'loan_hdfc_lap',
-        name: 'HDFC LAP',
+        name: 'HDFC LAP (801428107 - 45% Share)',
         category: 'Home Loan / LAP',
-        loanAmount: 9600000,
-        alreadyRunning: 9600000,
-        balanceAmt: 9600000,
+        loanAmount: 8910000,
+        alreadyRunning: 8910000,
+        balanceAmt: 8496728,
         debitAccount: '3981',
-        emi: 96000,
-        dueDate: '7/4/25',
-        tenure: 'LAP',
+        emi: 93040,
+        dueDate: '7th',
+        tenure: '166 months',
         interestRate: 9.5,
-        remarks: '',
+        remarks: 'Total Loan ₹1.98 Cr, EMI ₹2.06L. User Share 45% (Dad Share 55% Excluded)',
         status: 'Active'
     },
     {
@@ -280,8 +280,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v4');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v4');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v5');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v5');
 
     if (storedLoans) {
         try {
@@ -321,11 +321,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v4', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v5', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v4', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v5', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
