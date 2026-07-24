@@ -1,7 +1,8 @@
 /**
  * Rajdhani Smart Loan & Debt Portfolio Tracker
  * Pre-populated with User's Exact Google Sheet Data
- * Includes Privacy / Dual View Modes (Internal vs Shareable Public View)
+ * DEFAULT: Shareable Public View (Other Commitments 100% Hidden)
+ * OWNER UNLOCK: Require PIN (Default: 786) or ?key=786 to view Internal Commitments
  */
 
 // User's Exact Loans Master Dataset
@@ -195,7 +196,7 @@ const RAW_GSHEET_LOANS = [
     }
 ];
 
-// User's Other Monthly Commitments Dataset
+// User's Other Monthly Commitments Dataset (Internal Only)
 const RAW_GSHEET_COMMITMENTS = [
     { id: 'c1', name: 'D', amount: 25000, remarks: 'Monthly payout' },
     { id: 'c2', name: 'saim', amount: 18000, remarks: 'Monthly payout' },
@@ -210,12 +211,14 @@ const RAW_GSHEET_COMMITMENTS = [
     { id: 'c11', name: 'ak', amount: 18000, remarks: 'Monthly payout' }
 ];
 
-// App State
+const OWNER_PIN = '786';
+
+// App State (Default SHAREABLE MODE = TRUE)
 let loans = [];
 let commitments = [];
 let selectedLoanId = null;
 let currencySymbol = '₹';
-let isShareableMode = false;
+let isShareableMode = true; // Default to TRUE (PUBLIC SHAREABLE VIEW)
 let chartDebtBreakdown = null;
 let chartAccountEMI = null;
 let chartCalcComparison = null;
@@ -230,8 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function checkUrlMode() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'share' || params.get('share') === 'true') {
-        isShareableMode = true;
+    const mode = params.get('mode');
+    const key = params.get('key');
+
+    if (mode === 'internal' || key === OWNER_PIN) {
+        isShareableMode = false;
+    } else {
+        isShareableMode = true; // Default for public URL
     }
 }
 
@@ -240,18 +248,30 @@ function updateViewModeUI() {
     const toggleBtnText = document.getElementById('textToggleViewMode');
     const toggleIcon = document.getElementById('iconViewMode');
 
+    const privateEls = document.querySelectorAll('.private-element');
+
     if (isShareableMode) {
         document.body.classList.add('shareable-mode');
-        badge.innerText = 'Shareable View (Public)';
+        badge.innerText = 'Public Shareable View';
         badge.className = 'mode-badge shareable';
-        toggleBtnText.innerText = 'Switch to Internal View';
-        toggleIcon.className = 'fa-solid fa-eye';
+        toggleBtnText.innerText = 'Owner Unlock (Internal)';
+        toggleIcon.className = 'fa-solid fa-lock';
+
+        privateEls.forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+        });
     } else {
         document.body.classList.remove('shareable-mode');
-        badge.innerText = 'Internal View (Full)';
+        badge.innerText = 'Internal Owner View';
         badge.className = 'mode-badge internal';
-        toggleBtnText.innerText = 'Switch to Shareable View';
-        toggleIcon.className = 'fa-solid fa-eye-slash';
+        toggleBtnText.innerText = 'Lock Shareable Mode';
+        toggleIcon.className = 'fa-solid fa-lock-open';
+
+        privateEls.forEach(el => {
+            if (el.tagName === 'SECTION') el.style.display = 'block';
+            else if (el.tagName === 'BUTTON') el.style.display = 'flex';
+            else el.style.display = 'flex';
+        });
     }
 }
 
@@ -287,7 +307,6 @@ function formatCurrency(val) {
     return currencySymbol + ' ' + num.toLocaleString('en-IN');
 }
 
-// Financial Math Amortization
 function generateAmortizationSchedule(loan) {
     const schedule = [];
     let balance = Number(loan.balanceAmt || loan.loanAmount);
@@ -354,7 +373,7 @@ function renderAll() {
     renderSummaryCards();
     renderDebitAccountBreakup();
     renderSummaryTable();
-    renderCommitmentsTable();
+    if (!isShareableMode) renderCommitmentsTable();
     renderLoanSidebarList();
     renderSelectedLoanDetails();
     renderDashboardCharts();
@@ -388,7 +407,6 @@ function renderSummaryCards() {
     document.getElementById('valTotalMonthlyCombined').innerText = formatCurrency(totalMonthlyCombined);
 }
 
-// Debit Account Wise Breakup Cards
 function renderDebitAccountBreakup() {
     const container = document.getElementById('debitAccountGrid');
     container.innerHTML = '';
@@ -433,7 +451,6 @@ function renderDebitAccountBreakup() {
     });
 }
 
-// Summary Table
 function renderSummaryTable() {
     const tbody = document.getElementById('summaryTableBody');
     tbody.innerHTML = '';
@@ -470,9 +487,10 @@ function renderSummaryTable() {
     });
 }
 
-// Commitments Table
 function renderCommitmentsTable() {
+    if (isShareableMode) return;
     const tbody = document.getElementById('commitmentsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     let total = 0;
@@ -505,7 +523,6 @@ function renderCommitmentsTable() {
     });
 }
 
-// Loan Sidebar List
 function renderLoanSidebarList() {
     const container = document.getElementById('loanItemsContainer');
     container.innerHTML = '';
@@ -532,7 +549,6 @@ function renderLoanSidebarList() {
     });
 }
 
-// Selected Loan Details
 function renderSelectedLoanDetails() {
     const noLoanState = document.getElementById('noLoanSelected');
     const contentState = document.getElementById('loanDetailContent');
@@ -625,12 +641,10 @@ function renderPrepaymentList(loan) {
     });
 }
 
-// Charts
 function renderDashboardCharts() {
     const activeLoans = loans.filter(l => l.status !== 'Closed' && l.balanceAmt > 0);
     if (activeLoans.length === 0) return;
 
-    // Debt Breakdown Chart
     const ctx1 = document.getElementById('chartDebtBreakdown').getContext('2d');
     const labels = activeLoans.map(l => l.name);
     const balances = activeLoans.map(l => l.balanceAmt);
@@ -656,7 +670,6 @@ function renderDashboardCharts() {
         }
     });
 
-    // Account Wise EMI Chart
     const ctx2 = document.getElementById('chartAccountEMI').getContext('2d');
     const acMap = {};
     activeLoans.forEach(l => {
@@ -688,7 +701,6 @@ function renderDashboardCharts() {
     });
 }
 
-// Calculator Engine
 function initCalculatorDefault() {
     runPayoffSimulation();
 }
@@ -777,29 +789,48 @@ function runPayoffSimulation() {
     });
 }
 
-// Event Handling
 function initEventListeners() {
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => switchTab(e.currentTarget.dataset.tab));
     });
 
-    // View Mode Toggle
+    // View Mode Toggle (PIN Protected)
     document.getElementById('btnToggleViewMode').addEventListener('click', () => {
-        isShareableMode = !isShareableMode;
-        if (isShareableMode && document.querySelector('.tab-content.active').id === 'tab-commitments') {
-            switchTab('dashboard');
+        if (isShareableMode) {
+            // Prompt Passcode Modal
+            document.getElementById('inputPasscode').value = '';
+            document.getElementById('modalPasscode').classList.add('active');
+        } else {
+            // Lock back to Shareable Mode
+            isShareableMode = true;
+            if (document.querySelector('.tab-content.active').id === 'tab-commitments') {
+                switchTab('dashboard');
+            }
+            renderAll();
+            showToast('Locked to Shareable View (Other Commitments 100% Hidden)');
         }
-        renderAll();
-        showToast(isShareableMode ? 'Switched to Shareable View (Other Commitments Hidden)' : 'Switched to Internal View');
     });
 
-    // Copy Shareable Link
+    // Passcode Modal Actions
+    document.getElementById('btnClosePasscodeModal').addEventListener('click', () => {
+        document.getElementById('modalPasscode').classList.remove('active');
+    });
+    document.getElementById('btnCancelPasscodeModal').addEventListener('click', () => {
+        document.getElementById('modalPasscode').classList.remove('active');
+    });
+
+    document.getElementById('btnSubmitPasscode').addEventListener('click', verifyPasscodeAndUnlock);
+    document.getElementById('inputPasscode').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyPasscodeAndUnlock();
+    });
+
+    // Copy Clean Shareable Link (without secret keys)
     document.getElementById('btnCopyShareLink').addEventListener('click', () => {
-        const shareUrl = window.location.origin + window.location.pathname + '?mode=share';
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            showToast('Shareable Link copied to clipboard!');
+        const cleanUrl = window.location.origin + window.location.pathname;
+        navigator.clipboard.writeText(cleanUrl).then(() => {
+            showToast('Public Shareable Link copied to clipboard!');
         }).catch(() => {
-            prompt('Copy this Shareable Link:', shareUrl);
+            prompt('Copy Public Shareable Link:', cleanUrl);
         });
     });
 
@@ -892,7 +923,7 @@ function initEventListeners() {
     document.getElementById('btnProcessPaste').addEventListener('click', processPastedData);
 
     document.getElementById('btnExportJSON').addEventListener('click', () => {
-        downloadFile(JSON.stringify({ loans, commitments }, null, 2), 'rajdhani_loans_backup.json', 'application/json');
+        downloadFile(JSON.stringify({ loans, commitments: isShareableMode ? [] : commitments }, null, 2), 'rajdhani_loans_backup.json', 'application/json');
     });
 
     document.getElementById('btnExportCSV').addEventListener('click', exportLoansSummaryCSV);
@@ -908,6 +939,18 @@ function initEventListeners() {
             showToast('Raw GSheet data reloaded successfully!');
         }
     });
+}
+
+function verifyPasscodeAndUnlock() {
+    const input = document.getElementById('inputPasscode').value;
+    if (input === OWNER_PIN) {
+        isShareableMode = false;
+        document.getElementById('modalPasscode').classList.remove('active');
+        renderAll();
+        showToast('Unlocked Owner Internal View!');
+    } else {
+        alert('Incorrect PIN. Access denied.');
+    }
 }
 
 function switchTab(tabId) {

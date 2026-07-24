@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rajdhani Smart Loan & Debt Portfolio Tracker</title>
-    <meta name="description" content="Comprehensive loan management, bank account debit tracking, EMI schedules, and payoff optimization dashboard.">
+    <meta name="description" content="Comprehensive bank loan management, debit account EMI tracking, and amortization schedules.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="shareable-mode">
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -25,7 +25,7 @@
                 </div>
                 <div class="brand-text">
                     <h2>Rajdhani<span>LOANS</span></h2>
-                    <p id="viewModeBadgeTag" class="mode-badge internal">Internal View</p>
+                    <p id="viewModeBadgeTag" class="mode-badge shareable">Public Shareable View</p>
                 </div>
             </div>
 
@@ -38,7 +38,7 @@
                     <i class="fa-solid fa-list-check"></i>
                     <span>Bank Loans</span>
                 </button>
-                <button class="nav-item private-element" data-tab="commitments" id="navItemCommitments">
+                <button class="nav-item private-element" data-tab="commitments" id="navItemCommitments" style="display: none !important;">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                     <span>Other Commitments</span>
                 </button>
@@ -74,9 +74,9 @@
                     <p id="pageSubtitle">Track active bank loans, debit account EMI auto-deductions, and schedules.</p>
                 </div>
                 <div class="header-actions">
-                    <!-- View Mode Toggle Button -->
+                    <!-- Owner Access / Unlock Button -->
                     <button class="btn btn-secondary" id="btnToggleViewMode">
-                        <i class="fa-solid fa-eye-slash" id="iconViewMode"></i> <span id="textToggleViewMode">Switch to Shareable View</span>
+                        <i class="fa-solid fa-lock" id="iconViewMode"></i> <span id="textToggleViewMode">Owner Unlock (Internal)</span>
                     </button>
                     <!-- Share Button -->
                     <button class="btn btn-outline" id="btnCopyShareLink">
@@ -114,18 +114,20 @@
                         </div>
                     </div>
 
-                    <div class="metric-card glass-card private-element" id="cardOtherCommitment">
+                    <!-- Only shown in Internal Mode -->
+                    <div class="metric-card glass-card private-element" id="cardOtherCommitment" style="display: none !important;">
                         <div class="card-icon icon-amber">
                             <i class="fa-solid fa-hand-holding-dollar"></i>
                         </div>
                         <div class="card-details">
                             <span class="card-label">Other Commitments</span>
-                            <h2 class="card-value" id="valTotalOtherCommitment">₹211,500</h2>
+                            <h2 class="card-value" id="valTotalOtherCommitment">₹0</h2>
                             <div class="card-subtext">Private payouts (Internal Only)</div>
                         </div>
                     </div>
 
-                    <div class="metric-card glass-card private-element" id="cardTotalCombined">
+                    <!-- Only shown in Internal Mode -->
+                    <div class="metric-card glass-card private-element" id="cardTotalCombined" style="display: none !important;">
                         <div class="card-icon icon-emerald">
                             <i class="fa-solid fa-receipt"></i>
                         </div>
@@ -329,13 +331,13 @@
                 </div>
             </section>
 
-            <!-- Other Commitments Tab (Internal Only) -->
-            <section id="tab-commitments" class="tab-content private-element">
+            <!-- Other Commitments Tab (Internal Mode Only) -->
+            <section id="tab-commitments" class="tab-content private-element" style="display: none !important;">
                 <div class="section-card glass-card">
                     <div class="card-header">
                         <div>
                             <h3><i class="fa-solid fa-hand-holding-dollar"></i> Other Monthly Commitments & Private Payouts</h3>
-                            <p class="text-muted">Track monthly non-bank commitments (D, Saim, Rt2, Ele, NJ, NZ, etc.) - <em>Visible in Internal View only</em></p>
+                            <p class="text-muted">Track monthly non-bank commitments (Internal Owner Mode Only)</p>
                         </div>
                         <button class="btn btn-primary" id="btnOpenAddCommitment"><i class="fa-solid fa-plus"></i> Add Commitment</button>
                     </div>
@@ -356,8 +358,8 @@
                             <tfoot>
                                 <tr style="background: rgba(255,255,255,0.05); font-weight: 800;">
                                     <td>Total Monthly Other Commitments</td>
-                                    <td id="footOtherCommitmentTotal">₹211,500.00</td>
-                                    <td colspan="2">Net Running: ₹156,500.00</td>
+                                    <td id="footOtherCommitmentTotal">₹0</td>
+                                    <td colspan="2">Internal View Only</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -498,6 +500,26 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Modal: Passcode Entry to Unlock Internal Mode -->
+    <div class="modal-backdrop" id="modalPasscode">
+        <div class="modal-box glass-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved"></i> Owner Authentication</h3>
+                <button class="btn-icon" id="btnClosePasscodeModal">&times;</button>
+            </div>
+            <div style="padding: 10px 0;">
+                <p class="text-muted" style="margin-bottom: 16px;">Enter owner PIN to unlock Internal Mode & Private Commitments:</p>
+                <div class="form-group">
+                    <input type="password" id="inputPasscode" placeholder="Enter PIN (Default: 786)" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" required>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" id="btnCancelPasscodeModal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitPasscode">Unlock Internal View</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal: Add / Edit Loan -->
