@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body class="shareable-mode">
     <!-- Mobile Top Header Bar -->
@@ -101,6 +101,35 @@
                     </button>
                 </div>
             </header>
+
+            <!-- As Of Month Auto-Amortization Time Machine Control Bar -->
+            <div class="as-of-time-bar glass-card">
+                <div class="as-of-left">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <div>
+                        <span class="as-of-title">Auto Monthly Balance Reduction (As Of Month):</span>
+                        <p class="as-of-sub" id="asOfBadge">Assuming all due EMIs are paid up to date</p>
+                    </div>
+                </div>
+                <div class="as-of-right">
+                    <select id="asOfDateSelect" class="as-of-select">
+                        <option value="auto">Live Auto (Current Month)</option>
+                        <option value="2026-07">July 2026 (Base Statements)</option>
+                        <option value="2026-08">August 2026</option>
+                        <option value="2026-09">September 2026</option>
+                        <option value="2026-10">October 2026</option>
+                        <option value="2026-11">November 2026</option>
+                        <option value="2026-12">December 2026</option>
+                        <option value="2027-01">January 2027</option>
+                        <option value="2027-02">February 2027</option>
+                        <option value="2027-03">March 2027</option>
+                        <option value="2027-06">June 2027</option>
+                        <option value="2027-12">December 2027</option>
+                        <option value="2028-06">June 2028</option>
+                        <option value="2028-12">December 2028</option>
+                    </select>
+                </div>
+            </div>
 
             <!-- Dashboard Tab -->
             <section id="tab-dashboard" class="tab-content active">
@@ -640,6 +669,6 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>

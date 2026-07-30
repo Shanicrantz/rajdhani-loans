@@ -209,7 +209,7 @@ body.shareable-mode .metrics-grid {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .header-title h1 {
@@ -227,6 +227,54 @@ body.shareable-mode .metrics-grid {
 .header-actions {
     display: flex;
     gap: 12px;
+}
+
+/* As Of Month Auto-Amortization Bar */
+.as-of-time-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: var(--radius-md);
+}
+
+.as-of-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.as-of-left i {
+    font-size: 1.4rem;
+    color: var(--primary);
+}
+
+.as-of-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: block;
+}
+
+.as-of-sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.as-of-select {
+    background: var(--bg-sidebar);
+    border: 1px solid var(--primary);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 /* Buttons System */

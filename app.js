@@ -13,6 +13,10 @@ const RAW_GSHEET_LOANS = [
         category: 'Personal Loan',
         loanAmount: 744836,
         balanceAmt: 672980,
+        baseBalance: 672980,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 51,
         debitAccount: '3981',
         emi: 19404,
         dueDate: '2nd',
@@ -27,6 +31,10 @@ const RAW_GSHEET_LOANS = [
         category: 'Business Loan',
         loanAmount: 2000000,
         balanceAmt: 1410388,
+        baseBalance: 1410388,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 23,
         debitAccount: '4919',
         emi: 74328,
         dueDate: '2nd',
@@ -42,6 +50,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '10/3/25',
         loanAmount: 3045049,
         balanceAmt: 1965322,
+        baseBalance: 1965322,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 21,
         debitAccount: '4919',
         emi: 109324,
         dueDate: '3rd',
@@ -57,6 +69,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '29/3/25',
         loanAmount: 1500000,
         balanceAmt: 1031250,
+        baseBalance: 1031250,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 33,
         debitAccount: '7491',
         emi: 54089,
         dueDate: '5th',
@@ -72,6 +88,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '15/11/25',
         loanAmount: 1518799,
         balanceAmt: 1377592,
+        baseBalance: 1377592,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 52,
         debitAccount: '4919',
         emi: 36182,
         dueDate: '10th',
@@ -86,6 +106,10 @@ const RAW_GSHEET_LOANS = [
         category: 'Home Loan / LAP',
         loanAmount: 8910000,
         balanceAmt: 8496728,
+        baseBalance: 8496728,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 166,
         debitAccount: '3981',
         emi: 93040,
         dueDate: '7th',
@@ -101,6 +125,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '28/12/23',
         loanAmount: 1980000,
         balanceAmt: 340399,
+        baseBalance: 340399,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 6,
         debitAccount: '3981',
         emi: 71086,
         dueDate: '8/8/26',
@@ -116,6 +144,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '12/3/25',
         loanAmount: 1191292,
         balanceAmt: 1201000,
+        baseBalance: 1201000,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 36,
         debitAccount: '4919',
         emi: 42969,
         dueDate: '10/4/25',
@@ -130,6 +162,10 @@ const RAW_GSHEET_LOANS = [
         category: 'Overdraft / Limit',
         loanAmount: 950000,
         balanceAmt: 8300000,
+        baseBalance: 8300000,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 120,
         debitAccount: '3162',
         emi: 80000,
         dueDate: '31/3/25',
@@ -145,6 +181,10 @@ const RAW_GSHEET_LOANS = [
         startDate: '17/12/22',
         loanAmount: 710000,
         balanceAmt: 710000,
+        baseBalance: 710000,
+        baseYear: 2026,
+        baseMonth: 7,
+        baseTenureMos: 57,
         debitAccount: '7491',
         emi: 12608,
         dueDate: '5/5/25',
@@ -239,8 +279,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v15');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v15');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v16');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v16');
 
     if (storedLoans) {
         try {
@@ -290,11 +330,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v15', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v16', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v15', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v16', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
@@ -408,6 +448,79 @@ function generateAmortizationSchedule(loan) {
     return schedule;
 }
 
+// As Of Month Dynamic Auto-Amortization Engine
+let selectedAsOfVal = 'auto'; // 'auto' or 'YYYY-MM'
+
+function getSelectedYearMonth() {
+    if (selectedAsOfVal === 'auto' || !selectedAsOfVal) {
+        const now = new Date();
+        return { year: now.getFullYear(), month: now.getMonth() + 1 };
+    }
+    const parts = selectedAsOfVal.split('-');
+    return { year: parseInt(parts[0]), month: parseInt(parts[1]) };
+}
+
+function getLoanForSelectedAsOfDate(loan) {
+    const { year: targetY, month: targetM } = getSelectedYearMonth();
+    const baseY = loan.baseYear || 2026;
+    const baseM = loan.baseMonth || 7;
+    const baseBal = Number(loan.baseBalance !== undefined ? loan.baseBalance : (loan.balanceAmt || loan.loanAmount));
+    const baseTen = Number(loan.baseTenureMos !== undefined ? loan.baseTenureMos : (parseInt(loan.tenure) || 36));
+
+    const monthsElapsed = (targetY - baseY) * 12 + (targetM - baseM);
+
+    if (monthsElapsed <= 0) {
+        return {
+            ...loan,
+            displayBalance: baseBal,
+            displayTenure: loan.tenure || `${baseTen} months remaining`,
+            displayEMI: loan.status === 'Closed' ? 0 : Number(loan.emi || 0),
+            isPaidOff: loan.status === 'Closed' || baseBal <= 0
+        };
+    }
+
+    let bal = baseBal;
+    const r = (Number(loan.interestRate || 12) / 12) / 100;
+    const emi = Number(loan.emi || 0);
+
+    if (bal <= 0 || emi <= 0 || loan.status === 'Closed') {
+        return {
+            ...loan,
+            displayBalance: 0,
+            displayTenure: 'Closed / Paid Off',
+            displayEMI: 0,
+            isPaidOff: true
+        };
+    }
+
+    let remMonths = baseTen;
+
+    for (let m = 0; m < monthsElapsed; m++) {
+        if (bal <= 0) break;
+        const interest = bal * r;
+        const principal = emi - interest;
+
+        if (bal <= emi) {
+            bal = 0;
+            remMonths = 0;
+            break;
+        } else {
+            bal -= principal;
+            remMonths = Math.max(0, remMonths - 1);
+        }
+    }
+
+    const isPaidOff = bal <= 0;
+
+    return {
+        ...loan,
+        displayBalance: Math.max(0, Math.round(bal)),
+        displayTenure: isPaidOff ? 'Paid Off 🎉' : `${remMonths} months remaining`,
+        displayEMI: isPaidOff ? 0 : emi,
+        isPaidOff
+    };
+}
+
 // Master Render
 function renderAll() {
     updateViewModeUI();
@@ -426,13 +539,16 @@ function renderSummaryCards() {
     let totalBalance = 0;
     let totalSanctioned = 0;
     let totalBankEMI = 0;
+    let activeCount = 0;
 
     loans.forEach(loan => {
-        if (loan.status !== 'Closed') {
-            totalBalance += Number(loan.balanceAmt || 0);
-            totalSanctioned += Number(loan.loanAmount || 0);
-            totalBankEMI += Number(loan.emi || 0);
+        const comp = getLoanForSelectedAsOfDate(loan);
+        if (!comp.isPaidOff && loan.status !== 'Closed') {
+            activeCount++;
         }
+        totalBalance += Number(comp.displayBalance || 0);
+        totalSanctioned += Number(loan.loanAmount || 0);
+        totalBankEMI += Number(comp.displayEMI || 0);
     });
 
     let totalOtherComm = commitments.reduce((sum, c) => sum + Number(c.amount || 0), 0);
@@ -449,7 +565,7 @@ function renderSummaryCards() {
     if (elSub) elSub.innerText = `Total Sanctioned: ${formatCurrency(totalSanctioned)}`;
 
     if (elEmi) elEmi.innerText = formatCurrency(totalBankEMI);
-    if (elActive) elActive.innerText = `${loans.filter(l=>l.status!=='Closed').length} active bank loan(s)`;
+    if (elActive) elActive.innerText = `${activeCount} active bank loan(s) remaining`;
 
     if (elOther) elOther.innerText = formatCurrency(totalOtherComm);
     if (elComb) elComb.innerText = formatCurrency(totalMonthlyCombined);
@@ -463,12 +579,13 @@ function renderDebitAccountBreakup() {
     const accountMap = {};
 
     loans.forEach(loan => {
+        const comp = getLoanForSelectedAsOfDate(loan);
         if (loan.status !== 'Closed' && loan.debitAccount) {
             const ac = loan.debitAccount;
             if (!accountMap[ac]) accountMap[ac] = { account: ac, emi: 0, count: 0, balance: 0 };
-            accountMap[ac].emi += Number(loan.emi || 0);
-            accountMap[ac].balance += Number(loan.balanceAmt || 0);
-            accountMap[ac].count += 1;
+            accountMap[ac].emi += Number(comp.displayEMI || 0);
+            accountMap[ac].balance += Number(comp.displayBalance || 0);
+            accountMap[ac].count += (comp.isPaidOff ? 0 : 1);
         }
     });
 
@@ -488,7 +605,7 @@ function renderDebitAccountBreakup() {
             <div>
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">DEBIT A/C</span>
                 <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">${acInfo.account}</h3>
-                <small style="color: var(--text-secondary);">${acInfo.count} loan(s) mapped</small>
+                <small style="color: var(--text-secondary);">${acInfo.count} active loan(s)</small>
             </div>
             <div style="text-align: right;">
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">MONTHLY DEDUCTION</span>
@@ -506,17 +623,18 @@ function renderSummaryTable() {
     tbody.innerHTML = '';
 
     loans.forEach(loan => {
+        const comp = getLoanForSelectedAsOfDate(loan);
         const tr = document.createElement('tr');
-        if (loan.status === 'Closed') tr.style.opacity = '0.4';
+        if (comp.isPaidOff || loan.status === 'Closed') tr.style.opacity = '0.5';
 
         tr.innerHTML = `
             <td class="font-bold">${loan.name} ${loan.startDate ? `<br><small class="text-muted">${loan.startDate}</small>` : ''}</td>
             <td>${formatCurrency(loan.loanAmount)}</td>
-            <td class="font-bold text-success">${formatCurrency(loan.balanceAmt)}</td>
+            <td class="font-bold ${comp.isPaidOff ? 'text-muted' : 'text-success'}">${formatCurrency(comp.displayBalance)}</td>
             <td><span class="badge badge-primary">A/C ${loan.debitAccount}</span></td>
-            <td class="font-bold">${formatCurrency(loan.emi)}</td>
+            <td class="font-bold">${comp.isPaidOff ? '<span style="color:#10b981;">₹0 (Paid Off)</span>' : formatCurrency(comp.displayEMI)}</td>
             <td>${loan.dueDate || '-'}</td>
-            <td>${loan.tenure || '-'}</td>
+            <td>${comp.isPaidOff ? '<span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Paid Off 🎉</span>' : comp.displayTenure}</td>
             <td>
                 <button class="btn btn-sm btn-outline btn-select-loan" data-id="${loan.id}">
                     <i class="fa-solid fa-eye"></i> View
@@ -579,16 +697,19 @@ function renderLoanSidebarList() {
     container.innerHTML = '';
 
     loans.forEach(loan => {
+        const comp = getLoanForSelectedAsOfDate(loan);
         const div = document.createElement('div');
         div.className = `loan-item-card ${loan.id === selectedLoanId ? 'active' : ''}`;
         div.dataset.id = loan.id;
+        if (comp.isPaidOff) div.style.opacity = '0.5';
+
         div.innerHTML = `
             <div class="lic-title">
                 <span>${loan.name}</span>
                 <small>A/C ${loan.debitAccount}</small>
             </div>
             <div class="lic-sub">
-                ${formatCurrency(loan.balanceAmt)} • EMI: ${formatCurrency(loan.emi)}
+                ${comp.isPaidOff ? '<span style="color:#10b981; font-weight:700;">Paid Off 🎉</span>' : `${formatCurrency(comp.displayBalance)} • EMI: ${formatCurrency(comp.displayEMI)}`}
             </div>
         `;
         div.addEventListener('click', () => {
@@ -620,6 +741,8 @@ function renderSelectedLoanDetails() {
     if (noLoanState) noLoanState.style.display = 'none';
     if (contentState) contentState.style.display = 'block';
 
+    const comp = getLoanForSelectedAsOfDate(loan);
+
     const elCat = document.getElementById('detCategory');
     const elName = document.getElementById('detLoanName');
     const elAc = document.getElementById('detDebitAccount');
@@ -633,9 +756,9 @@ function renderSelectedLoanDetails() {
     if (elAc) elAc.innerText = loan.debitAccount || '3981';
 
     if (elOrig) elOrig.innerText = formatCurrency(loan.loanAmount);
-    if (elOut) elOut.innerText = formatCurrency(loan.balanceAmt);
-    if (elEmi) elEmi.innerText = formatCurrency(loan.emi);
-    if (elTen) elTen.innerText = `${loan.dueDate || ''} (${loan.tenure || 'N/A'})`;
+    if (elOut) elOut.innerText = formatCurrency(comp.displayBalance);
+    if (elEmi) elEmi.innerText = comp.isPaidOff ? '₹0 (Paid Off)' : formatCurrency(comp.displayEMI);
+    if (elTen) elTen.innerText = comp.isPaidOff ? 'Paid Off 🎉' : `${loan.dueDate || ''} (${comp.displayTenure})`;
 
     const schedule = generateAmortizationSchedule(loan);
     renderAmortizationTable(schedule);
@@ -873,6 +996,25 @@ function closeMobileSidebar() {
 }
 
 function initEventListeners() {
+    // As Of Month Select Handler
+    const asOfSelect = document.getElementById('asOfDateSelect');
+    if (asOfSelect) {
+        asOfSelect.addEventListener('change', (e) => {
+            selectedAsOfVal = e.target.value;
+            const badge = document.getElementById('asOfBadge');
+            if (badge) {
+                if (selectedAsOfVal === 'auto') {
+                    badge.innerText = 'Assuming all due EMIs are paid up to date';
+                } else {
+                    const selText = asOfSelect.options[asOfSelect.selectedIndex].text;
+                    badge.innerText = `Assuming all due EMIs are paid up to ${selText}`;
+                }
+            }
+            renderAll();
+            showToast(`Portfolio updated as of ${selectedAsOfVal === 'auto' ? 'Current Date (Auto)' : selectedAsOfVal}`);
+        });
+    }
+
     // Mobile Drawer Controls
     const btnMobMenu = document.getElementById('btnMobileMenu');
     const mobOverlay = document.getElementById('sidebarOverlay');
