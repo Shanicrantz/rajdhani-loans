@@ -279,8 +279,8 @@ function updateViewModeUI() {
 }
 
 function loadDataFromStorage() {
-    const storedLoans = localStorage.getItem('rajdhani_loans_v16');
-    const storedComm = localStorage.getItem('rajdhani_commitments_v16');
+    const storedLoans = localStorage.getItem('rajdhani_loans_v17');
+    const storedComm = localStorage.getItem('rajdhani_commitments_v17');
 
     if (storedLoans) {
         try {
@@ -330,11 +330,11 @@ function loadDataFromStorage() {
 }
 
 function saveLoansToStorage() {
-    localStorage.setItem('rajdhani_loans_v16', JSON.stringify(loans));
+    localStorage.setItem('rajdhani_loans_v17', JSON.stringify(loans));
 }
 
 function saveCommitmentsToStorage() {
-    localStorage.setItem('rajdhani_commitments_v16', JSON.stringify(commitments));
+    localStorage.setItem('rajdhani_commitments_v17', JSON.stringify(commitments));
 }
 
 function formatCurrency(val) {
@@ -1012,6 +1012,21 @@ function initEventListeners() {
             }
             renderAll();
             showToast(`Portfolio updated as of ${selectedAsOfVal === 'auto' ? 'Current Date (Auto)' : selectedAsOfVal}`);
+        });
+    }
+
+    // Print Controls
+    const btnPrintRep = document.getElementById('btnPrintReport');
+    if (btnPrintRep) {
+        btnPrintRep.addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    const btnPrintAmort = document.getElementById('btnPrintAmortization');
+    if (btnPrintAmort) {
+        btnPrintAmort.addEventListener('click', () => {
+            window.print();
         });
     }
 

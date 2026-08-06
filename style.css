@@ -1131,3 +1131,91 @@ body.shareable-mode .metrics-grid {
         padding: 2px 8px;
     }
 }
+
+/* ==========================================================================
+   Print & PDF Export Styling
+   ========================================================================== */
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 11pt !important;
+    }
+
+    .sidebar,
+    .mobile-top-bar,
+    .sidebar-overlay,
+    .header-actions,
+    .sub-tab-bar,
+    .table-filter-bar,
+    .detail-actions,
+    .modal-backdrop,
+    .toast,
+    .btn,
+    .as-of-time-bar,
+    .loan-sidebar-list {
+        display: none !important;
+    }
+
+    .app-container {
+        display: block !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        color: #0f172a !important;
+        break-inside: avoid;
+    }
+
+    .top-header {
+        border-bottom: 2px solid #6366f1;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .top-header h1 {
+        color: #0f172a !important;
+        font-size: 1.6rem !important;
+    }
+
+    .top-header p {
+        color: #475569 !important;
+    }
+
+    .data-table {
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .data-table th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+    }
+
+    .data-table td {
+        color: #334155 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .schedule-table-wrapper {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .loans-layout {
+        display: block !important;
+    }
+
+    .loan-detail-pane {
+        padding: 0 !important;
+    }
+}
